@@ -9,11 +9,6 @@ const { REST, Routes } = require('discord.js');
 
 const commands = [
   {
-    name: 'ping',
-    description: 'Replies with Pong!'
-  }
-];
-  {
     name: 'kick',
     description: 'Kick a member',
     options: [
