@@ -25,7 +25,7 @@ client.once('ready', async () => {
     await rest.put(
       Routes.applicationGuildCommands(
         client.user.id,
-        'YOUR_GUILD_ID'
+        '1429871186157895693'
       ),
       { body: commands }
     );
