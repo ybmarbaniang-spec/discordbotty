@@ -1,29 +1,32 @@
+const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
-
-const { REST, Routes } = require('discord.js');
-
 const commands = [
   {
     name: 'kick',
     description: 'Kick a member',
     options: [
-      {
-        name: 'user',
-        description: 'User to kick',
-        type: 6,
-        required: true
-      },
-      {
-        name: 'reason',
-        description: 'Reason for kick',
-        type: 3,
-        required: false
-      }
+      { name: 'user', description: 'User to kick', type: 6, required: true },
+      { name: 'reason', description: 'Reason', type: 3, required: false }
+    ]
+  },
+  {
+    name: 'ban',
+    description: 'Ban a member',
+    options: [
+      { name: 'user', description: 'User to ban', type: 6, required: true },
+      { name: 'reason', description: 'Reason', type: 3, required: false }
+    ]
+  },
+  {
+    name: 'warn',
+    description: 'Warn a member',
+    options: [
+      { name: 'user', description: 'User to warn', type: 6, required: true },
+      { name: 'reason', description: 'Reason', type: 3, required: false }
     ]
   }
 ];
@@ -32,87 +35,49 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  try {
-    console.log('Registering slash commands...');
+  await rest.put(
+    Routes.applicationGuildCommands(client.user.id, '1429871186157895693'),
+    { body: commands }
+  );
 
-    await rest.put(
-      Routes.applicationGuildCommands(
-        client.user.id,
-        '1429871186157895693'
-      ),
-      { body: commands }
-    );
-
-    console.log('Slash commands registered!');
-  } catch (err) {
-    console.error(err);
-  }
-});
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  console.log('Commands registered');
 });
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === 'kick') {
-  const user = interaction.options.getUser('user');
-  const reason = interaction.options.getString('reason') || 'No reason provided';
+    const user = interaction.options.getUser('user');
+    const member = await interaction.guild.members.fetch(user.id).catch(() => null);
 
-  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+    if (!member) return interaction.reply({ content: 'User not found', ephemeral: true });
+    if (!member.kickable) return interaction.reply({ content: 'Cannot kick user', ephemeral: true });
 
-  if (!member) {
-    return interaction.reply({ content: 'User not found.', ephemeral: true });
+    await member.kick();
+    return interaction.reply(`Kicked ${user.tag}`);
   }
 
-  if (!interaction.member.permissions.has('KickMembers')) {
-    return interaction.reply({ content: 'You need Kick Members permission.', ephemeral: true });
+  if (interaction.commandName === 'ban') {
+    const user = interaction.options.getUser('user');
+    const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+
+    if (!member) return interaction.reply({ content: 'User not found', ephemeral: true });
+    if (!member.bannable) return interaction.reply({ content: 'Cannot ban user', ephemeral: true });
+
+    await member.ban();
+    return interaction.reply(`Banned ${user.tag}`);
   }
 
-  if (!member.kickable) {
-    return interaction.reply({ content: 'I cannot kick this user.', ephemeral: true });
-  }
+  if (interaction.commandName === 'warn') {
+    const user = interaction.options.getUser('user');
+    const reason = interaction.options.getString('reason') || 'No reason provided';
 
-  await member.kick(reason);
+    try {
+      await user.send(`You have been warned in ${interaction.guild.name}\nReason: ${reason}`);
+    } catch {}
 
-  await interaction.reply(`Kicked ${user.tag}`);
+    return interaction.reply(`Warned ${user.tag}\nReason: ${reason}`);
   }
-{
-  name: 'ban',
-  description: 'Ban a member',
-  options: [
-    {
-      name: 'user',
-      description: 'User to ban',
-      type: 6,
-      required: true
-    },
-    {
-      name: 'reason',
-      description: 'Reason for ban',
-      type: 3,
-      required: false
-    }
-  ]
-},
-{
-  name: 'warn',
-  description: 'Warn a member',
-  options: [
-    {
-      name: 'user',
-      description: 'User to warn',
-      type: 6,
-      required: true
-    },
-    {
-      name: 'reason',
-      description: 'Reason for warn',
-      type: 3,
-      required: false
-    }
-  ]
-}
-  
+});
 
 client.login(process.env.TOKEN);
