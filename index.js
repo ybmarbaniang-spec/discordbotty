@@ -69,6 +69,27 @@ client.once('ready', async () => {
 
     await rest.put(
       Routes.applicationGuildCommands(
+        process.env.CLIENT_ID,
+        process.env.GUILD_ID
+      ),
+      { body: commands }
+    );
+
+    console.log('Slash commands registered successfully!');
+  } catch (err) {
+    console.error('Deploy error:', err);
+  }
+});
+client.once('ready', async () => {
+  console.log(`Logged in as ${client.user.tag}`);
+
+  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+
+  try {
+    console.log('Registering slash commands...');
+
+    await rest.put(
+      Routes.applicationGuildCommands(
         process.env.1495025341494726716,
         process.env.1429871186157895693
       ),
@@ -77,7 +98,7 @@ client.once('ready', async () => {
 
     console.log('Slash commands registered successfully!');
   } catch (err) {
-    console.error('Error registering commands:', err);
+    console.error('Deploy error:', err);
   }
 });
 client.login(process.env.TOKEN);
