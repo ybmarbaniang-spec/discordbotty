@@ -37,12 +37,7 @@ client.once('ready', async () => {
 
   await rest.put(
   Routes.applicationGuildCommands(client.user.id, '1429871186157895693'),
-  { body: [] }
-);
-
-await rest.put(
-  Routes.applicationCommands(client.user.id),
-  { body: [] }
+  { body: commands }
 );
 
   console.log('Commands registered');
