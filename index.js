@@ -55,15 +55,6 @@ client.once('ready', () => {
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  if (interaction.commandName === 'ping') {
-    await interaction.reply('🏓 Pong!');
-  }
-
-  if (interaction.commandName === 'ban') {
-    const user = interaction.options.getUser('user');
-    await interaction.reply(`🔨 Banned ${user.tag}`);
-  }
-
   if (interaction.commandName === 'kick') {
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
@@ -86,11 +77,42 @@ client.on('interactionCreate', async interaction => {
 
   await interaction.reply(`Kicked ${user.tag}`);
   }
-
-  if (interaction.commandName === 'warn') {
-    const user = interaction.options.getUser('user');
-    await interaction.reply(`⚠️ Warned ${user.tag}`);
-  }
-});
+{
+  name: 'ban',
+  description: 'Ban a member',
+  options: [
+    {
+      name: 'user',
+      description: 'User to ban',
+      type: 6,
+      required: true
+    },
+    {
+      name: 'reason',
+      description: 'Reason for ban',
+      type: 3,
+      required: false
+    }
+  ]
+},
+{
+  name: 'warn',
+  description: 'Warn a member',
+  options: [
+    {
+      name: 'user',
+      description: 'User to warn',
+      type: 6,
+      required: true
+    },
+    {
+      name: 'reason',
+      description: 'Reason for warn',
+      type: 3,
+      required: false
+    }
+  ]
+}
+  
 
 client.login(process.env.TOKEN);
