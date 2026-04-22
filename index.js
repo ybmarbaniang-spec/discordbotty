@@ -65,8 +65,26 @@ client.on('interactionCreate', async interaction => {
   }
 
   if (interaction.commandName === 'kick') {
-    const user = interaction.options.getUser('user');
-    await interaction.reply(`👢 Kicked ${user.tag}`);
+  const user = interaction.options.getUser('user');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
+
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+
+  if (!member) {
+    return interaction.reply({ content: 'User not found.', ephemeral: true });
+  }
+
+  if (!interaction.member.permissions.has('KickMembers')) {
+    return interaction.reply({ content: 'You need Kick Members permission.', ephemeral: true });
+  }
+
+  if (!member.kickable) {
+    return interaction.reply({ content: 'I cannot kick this user.', ephemeral: true });
+  }
+
+  await member.kick(reason);
+
+  await interaction.reply(`Kicked ${user.tag}`);
   }
 
   if (interaction.commandName === 'warn') {
