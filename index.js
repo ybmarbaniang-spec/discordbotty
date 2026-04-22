@@ -39,7 +39,6 @@ client.once('ready', async () => {
   Routes.applicationGuildCommands(client.user.id, '1429871186157859693'),
   { body: commands }
 );
-
   console.log('Commands registered');
 });
 
