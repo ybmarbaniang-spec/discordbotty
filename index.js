@@ -36,13 +36,8 @@ client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   await rest.put(
-  Routes.applicationGuildCommands(client.user.id, '1429871186157895693'),
-  { body: [] }
-);
-
-await rest.put(
-  Routes.applicationCommands(client.user.id),
-  { body: [] }
+  Routes.applicationGuildCommands(client.user.id, '1429871186157859693'),
+  { body: commands }
 );
 
   console.log('Commands registered');
