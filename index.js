@@ -13,7 +13,25 @@ const commands = [
     description: 'Replies with Pong!'
   }
 ];
-
+  {
+    name: 'kick',
+    description: 'Kick a member',
+    options: [
+      {
+        name: 'user',
+        description: 'User to kick',
+        type: 6,
+        required: true
+      },
+      {
+        name: 'reason',
+        description: 'Reason for kick',
+        type: 3,
+        required: false
+      }
+    ]
+  }
+];
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 client.once('ready', async () => {
