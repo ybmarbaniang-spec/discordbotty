@@ -151,25 +151,29 @@ if (commandName === 'ban') {
   return interaction.reply(`Banned ${user.tag}`);
 }
 
-if (commandName === 'warnings') {
+if (commandName === 'warn') {
   const user = interaction.options.getUser('user');
-  const userWarns = warns.get(user.id) || [];
+  const reason = interaction.options.getString('reason') || 'No reason provided';
 
-  if (userWarns.length === 0) {
-    return interaction.reply({
-      content: `${user.tag} has no warnings.`,
-      ephemeral: true
-    });
-  }
+  if (!warns.has(user.id)) warns.set(user.id, []);
 
-  const formatted = userWarns
-    .map((w, i) => `${i + 1}. ${w.reason} (by ${w.moderator})`)
-    .join('\n');
+  warns.get(user.id).push({
+    reason,
+    moderator: interaction.user.tag,
+    date: new Date().toLocaleString()
+  });
+
+  const total = warns.get(user.id).length;
 
   const embed = {
     color: 0x2b2d31,
-    title: `Warnings for ${user.tag}`,
-    description: formatted
+    title: 'User Warned',
+    fields: [
+      { name: 'User', value: user.tag, inline: true },
+      { name: 'Moderator', value: interaction.user.tag, inline: true },
+      { name: 'Reason', value: reason, inline: false },
+      { name: 'Total Warnings', value: `${total}`, inline: true }
+    ]
   };
 
   await interaction.reply({ embeds: [embed] });
