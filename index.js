@@ -28,11 +28,24 @@ Moderator: ${moderator}
 Time: ${new Date().toLocaleString()}`;
 };
 
-const sendLog = async (guild, message) => {
+const sendLog = async (guild, title, user, reason, moderator) => {
   try {
-    const channel = guild.channels.cache.get(MOD_LOG_CHANNEL_ID);
+    const channel = guild.channels.cache.get(1433417790202839040);
     if (!channel) return;
-    await channel.send({ content: message });
+
+    await channel.send({
+      embeds: [{
+        title: `Moderation: ${title}`,
+        color: 0x2b2d31,
+        fields: [
+          { name: 'User', value: user, inline: false },
+          { name: 'Reason', value: reason || 'No reason provided', inline: false },
+          { name: 'Moderator', value: moderator, inline: false },
+          { name: 'Time', value: new Date().toLocaleString(), inline: false }
+        ]
+      }]
+    });
+
   } catch (err) {
     console.error(err);
   }
