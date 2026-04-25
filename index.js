@@ -124,13 +124,13 @@ client.on('interactionCreate', async interaction => {
 
   const embed = {
     color: 0x5865F2,
-    title: `📊 ${guild.name}`,
+    title: ` ${guild.name}`,
     thumbnail: { url: guild.iconURL() },
     fields: [
-      { name: '👑 Owner', value: `<@${guild.ownerId}>`, inline: true },
-      { name: '👥 Members', value: `${guild.memberCount}`, inline: true },
-      { name: '🆔 Server ID', value: guild.id, inline: false },
-      { name: '📅 Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: false }
+      { name: 'Owner', value: `<@${guild.ownerId}>`, inline: true },
+      { name: 'Members', value: `${guild.memberCount}`, inline: true },
+      { name: 'Server ID', value: guild.id, inline: false },
+      { name: 'Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: false }
     ]
   };
 
@@ -194,13 +194,13 @@ if (commandName === 'userinfo') {
 
   const embed = {
     color: 0x00bfff,
-    title: `👤 ${user.tag}`,
+    title: ` ${user.tag}`,
     thumbnail: { url: user.displayAvatarURL() },
     fields: [
-      { name: '🆔 User ID', value: user.id, inline: false },
-      { name: '📅 Account Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
-      { name: '📥 Joined Server', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
-      { name: '🎭 Roles', value: member.roles.cache.map(r => r.name).join(', '), inline: false }
+      { name: 'User ID', value: user.id, inline: false },
+      { name: 'Account Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
+      { name: 'Joined Server', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
+      { name: 'Roles', value: member.roles.cache.map(r => r.name).join(', '), inline: false }
     ]
   };
 
@@ -210,12 +210,12 @@ if (commandName === 'userinfo') {
 if (commandName === 'about') {
   const embed = {
     color: 0x00ffcc,
-    title: '🤖 About This Bot',
+    title: ' About This Bot',
     description: 'A powerful moderation bot designed to manage your server efficiently.',
     fields: [
-      { name: '⚙️ Features', value: 'Kick, Ban, Warn, Roles, Timeout, Info', inline: false },
-      { name: '🚀 Status', value: 'Online & Running', inline: true },
-      { name: '👑 Developer', value: 'You 😎', inline: true }
+      { name: ' Features', value: 'Kick, Ban, Warn, Roles, Timeout, Info', inline: false },
+      { name: ' Status', value: 'Online & Running', inline: true },
+      { name: ' Developer', value: 'You ', inline: true }
     ]
   };
 
