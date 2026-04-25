@@ -152,7 +152,8 @@ if (commandName === 'ban') {
 }
 
 if (commandName === 'warn') {
-  console.log("NEW WARN CODE RUNNING");
+  await interaction.deferReply();
+
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
 
@@ -172,10 +173,13 @@ if (commandName === 'warn') {
     fields: [
       { name: 'User', value: user.tag, inline: true },
       { name: 'Moderator', value: interaction.user.tag, inline: true },
-      { name: 'Reason', value: reason, inline: false },
+      { name: 'Reason', value: reason },
       { name: 'Total Warnings', value: `${total}`, inline: true }
     ]
   };
+
+  await interaction.editReply({ embeds: [embed] });
+}
 
   await interaction.reply({ embeds: [embed] });
 }
