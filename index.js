@@ -123,7 +123,7 @@ client.on('interactionCreate', async interaction => {
   const { guild } = interaction;
 
   const embed = {
-    color: 0x5865F2,
+    color: 0x2b2d31,
     title: ` ${guild.name}`,
     thumbnail: { url: guild.iconURL() },
     fields: [
@@ -193,7 +193,7 @@ if (commandName === 'userinfo') {
   const member = await interaction.guild.members.fetch(user.id);
 
   const embed = {
-    color: 0x00bfff,
+    color: 0x2b2d31,
     title: ` ${user.tag}`,
     thumbnail: { url: user.displayAvatarURL() },
     fields: [
@@ -209,7 +209,7 @@ if (commandName === 'userinfo') {
 
 if (commandName === 'about') {
   const embed = {
-    color: 0x00ffcc,
+    color: 0x2b2d31,
     title: ' About This Bot',
     description: 'A powerful moderation bot designed to manage your server efficiently.',
     fields: [
