@@ -242,6 +242,94 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(`Removed role from ${user.tag}`);
     }
 
+    if (commandName === 'ping') {
+  return interaction.reply(`Pong! ${client.ws.ping}ms`);
+}
+
+if (commandName === 'help') {
+  const embed = {
+    color: 0x2b2d31,
+    title: 'Command List',
+    description: 'Here are all available commands:',
+    fields: [
+      { name: 'Moderation', value: 'kick, ban, warn, warnings, mute, purge, timeout' },
+      { name: 'Utility', value: 'ping, help, membercount, roles, channelinfo, serverinfo, userinfo, about' },
+      { name: 'Server Control', value: 'slowmode, lock, unban, clearwarnings, roleadd, roleremove' }
+    ]
+  };
+
+  return interaction.reply({ embeds: [embed] });
+}
+
+if (commandName === 'membercount') {
+  return interaction.reply(`Member Count: ${interaction.guild.memberCount}`);
+}
+
+if (commandName === 'roles') {
+  const roles = interaction.guild.roles.cache
+    .map(r => r.name)
+    .slice(0, 20)
+    .join(', ');
+
+  return interaction.reply(`Roles: ${roles}`);
+}
+
+if (commandName === 'channelinfo') {
+  const channel = interaction.channel;
+
+  const embed = {
+    color: 0x2b2d31,
+    title: 'Channel Info',
+    fields: [
+      { name: 'Name', value: channel.name, inline: true },
+      { name: 'ID', value: channel.id, inline: true },
+      { name: 'Type', value: channel.type.toString(), inline: true },
+      { name: 'Created', value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:R>` }
+    ]
+  };
+
+  return interaction.reply({ embeds: [embed] });
+}
+
+if (commandName === 'slowmode') {
+  const seconds = interaction.options.getInteger('seconds');
+
+  await interaction.channel.setRateLimitPerUser(seconds);
+  return interaction.reply(`Slowmode set to ${seconds} seconds`);
+}
+
+if (commandName === 'lock') {
+  await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
+    SendMessages: false
+  });
+
+  return interaction.reply('Channel locked');
+}
+
+if (commandName === 'unban') {
+  const userId = interaction.options.getString('user_id');
+
+  await interaction.guild.members.unban(userId);
+  return interaction.reply(`Unbanned user ${userId}`);
+}
+
+if (commandName === 'clearwarnings') {
+  const user = interaction.options.getUser('user');
+
+  warns.set(user.id, []);
+  return interaction.reply(`Cleared all warnings for ${user.tag}`);
+}
+
+if (commandName === 'mute') {
+  const user = interaction.options.getUser('user');
+  const time = interaction.options.getInteger('time');
+
+  const member = await interaction.guild.members.fetch(user.id);
+  await member.timeout(time * 1000);
+
+  return interaction.reply(`Muted ${user.tag} for ${time}s`);
+}
+
   } catch (err) {
     console.error(err);
 
