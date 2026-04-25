@@ -17,8 +17,8 @@ const client = new Client({
 const warns = new Map();
 
 const commands = [
-  { name: 'kick', description: 'Kick a user', options: [{ name: 'user', type: 6, required: true, description: 'User to kick' }, { name: 'reason', type: 3, description: 'Reason' }] },
-  { name: 'ban', description: 'Ban a user', options: [{ name: 'user', type: 6, required: true, description: 'User to ban' }, { name: 'reason', type: 3, description: 'Reason' }] },
+  { name: 'kick', description: 'Kick a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'reason', type: 3, description: 'Reason' }] },
+  { name: 'ban', description: 'Ban a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'reason', type: 3, description: 'Reason' }] },
   { name: 'warn', description: 'Warn a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'reason', type: 3, description: 'Reason' }] },
   { name: 'warnings', description: 'View warnings', options: [{ name: 'user', type: 6, required: true, description: 'User' }] },
   { name: 'purge', description: 'Delete messages', options: [{ name: 'amount', type: 4, required: true, description: 'Amount' }] },
@@ -31,19 +31,16 @@ const commands = [
   { name: 'roleadd', description: 'Add role', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'role', type: 8, required: true, description: 'Role' }] },
   { name: 'roleremove', description: 'Remove role', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'role', type: 8, required: true, description: 'Role' }] },
 
-  // NEW COMMANDS ADDED BELOW
-  { name: 'ping', description: 'Check bot latency' },
-  { name: 'help', description: 'Show commands' },
-  { name: 'membercount', description: 'Server member count' },
-  { name: 'roles', description: 'List roles' },
+  { name: 'ping', description: 'Bot latency' },
+  { name: 'help', description: 'Commands list' },
+  { name: 'membercount', description: 'Server members' },
+  { name: 'roles', description: 'Roles list' },
   { name: 'channelinfo', description: 'Channel info' },
 
   {
     name: 'slowmode',
     description: 'Set slowmode',
-    options: [
-      { name: 'seconds', type: 4, required: true, description: 'Seconds' }
-    ]
+    options: [{ name: 'seconds', type: 4, required: true, description: 'Seconds' }]
   },
 
   { name: 'lock', description: 'Lock channel' },
@@ -51,17 +48,13 @@ const commands = [
   {
     name: 'unban',
     description: 'Unban user',
-    options: [
-      { name: 'user_id', type: 3, required: true, description: 'User ID' }
-    ]
+    options: [{ name: 'user_id', type: 3, required: true, description: 'User ID' }]
   },
 
   {
     name: 'clearwarnings',
     description: 'Clear warnings',
-    options: [
-      { name: 'user', type: 6, required: true, description: 'User' }
-    ]
+    options: [{ name: 'user', type: 6, required: true, description: 'User' }]
   },
 
   {
@@ -73,6 +66,7 @@ const commands = [
     ]
   }
 ];
+
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
@@ -80,10 +74,7 @@ client.once('ready', async () => {
 
   try {
     await rest.put(
-      Routes.applicationGuildCommands(
-        process.env.CLIENT_ID,
-        process.env.GUILD_ID
-      ),
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
       { body: commands }
     );
 
@@ -92,7 +83,6 @@ client.once('ready', async () => {
     console.error(err);
   }
 });
-
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -100,7 +90,7 @@ client.on('interactionCreate', async (interaction) => {
 
   try {
 
-    // KICK (UNCHANGED LOGIC)
+    // KICK
     if (commandName === 'kick') {
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason';
@@ -110,7 +100,7 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(`Kicked ${user.tag}`);
     }
 
-    // BAN (UNCHANGED LOGIC)
+    // BAN
     if (commandName === 'ban') {
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason';
@@ -120,7 +110,7 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(`Banned ${user.tag}`);
     }
 
-    // WARN (UNCHANGED LOGIC)
+    // WARN
     if (commandName === 'warn') {
       await interaction.deferReply();
 
@@ -157,15 +147,118 @@ client.on('interactionCreate', async (interaction) => {
       const userWarns = warns.get(user.id) || [];
 
       if (!userWarns.length) {
-        return interaction.reply({
-          content: `${user.tag} has no warnings.`,
-          ephemeral: true
-        });
+        return interaction.reply({ content: `${user.tag} has no warnings.`, ephemeral: true });
       }
 
       const formatted = userWarns
-        .map((w, i) => `${i + 1}. ${w
-                                    // PING
+        .map((w, i) => `${i + 1}. ${w.reason} (by ${w.moderator})`)
+        .join('\n');
+
+      return interaction.reply({
+        content: `Warnings for ${user.tag}:\n\n${formatted}`,
+        ephemeral: true
+      });
+    }
+
+    // PURGE
+    if (commandName === 'purge') {
+      const amount = interaction.options.getInteger('amount');
+      await interaction.channel.bulkDelete(amount, true);
+      return interaction.reply(`Deleted ${amount} messages`);
+    }
+
+    // TIMEOUT
+    if (commandName === 'timeout') {
+      const user = interaction.options.getUser('user');
+      const time = interaction.options.getInteger('time');
+
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.timeout(time * 1000);
+
+      return interaction.reply(`${user.tag} timed out`);
+    }
+
+    // SERVER INFO (FULL)
+    if (commandName === 'serverinfo') {
+      const guild = interaction.guild;
+
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: guild.name,
+          thumbnail: { url: guild.iconURL() },
+          fields: [
+            { name: 'Owner', value: `<@${guild.ownerId}>`, inline: true },
+            { name: 'Members', value: `${guild.memberCount}`, inline: true },
+            { name: 'Server ID', value: guild.id },
+            { name: 'Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>` }
+          ]
+        }]
+      });
+    }
+
+    // USER INFO (FULL)
+    if (commandName === 'userinfo') {
+      const user = interaction.options.getUser('user');
+      const member = await interaction.guild.members.fetch(user.id);
+
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: user.tag,
+          thumbnail: { url: user.displayAvatarURL() },
+          fields: [
+            { name: 'ID', value: user.id },
+            { name: 'Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>` },
+            { name: 'Joined', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` }
+          ]
+        }]
+      });
+    }
+
+    // ABOUT (FULL + CLEAN)
+    if (commandName === 'about') {
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: 'About This Bot',
+          description: 'A moderation and utility bot designed for managing servers smoothly and efficiently.',
+          fields: [
+            {
+              name: 'Commands',
+              value: commands.map(c => `/${c.name}`).join('\n')
+            },
+            {
+              name: 'Status',
+              value: 'Online'
+            }
+          ]
+        }]
+      });
+    }
+
+    // ROLE ADD
+    if (commandName === 'roleadd') {
+      const user = interaction.options.getUser('user');
+      const role = interaction.options.getRole('role');
+
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.roles.add(role);
+
+      return interaction.reply(`Added role to ${user.tag}`);
+    }
+
+    // ROLE REMOVE
+    if (commandName === 'roleremove') {
+      const user = interaction.options.getUser('user');
+      const role = interaction.options.getRole('role');
+
+      const member = await interaction.guild.members.fetch(user.id);
+      await member.roles.remove(role);
+
+      return interaction.reply(`Removed role from ${user.tag}`);
+    }
+    // PING
     if (commandName === 'ping') {
       return interaction.reply(`Pong! ${client.ws.ping}ms`);
     }
@@ -175,11 +268,20 @@ client.on('interactionCreate', async (interaction) => {
       const embed = {
         color: 0x2b2d31,
         title: 'Command List',
-        description: 'All available bot commands:',
+        description: 'All available commands:',
         fields: [
-          { name: 'Moderation', value: 'kick, ban, warn, warnings, purge, timeout, mute' },
-          { name: 'Utility', value: 'ping, help, membercount, roles, channelinfo, serverinfo, userinfo, about' },
-          { name: 'Server Control', value: 'slowmode, lock, unban, clearwarnings, roleadd, roleremove' }
+          {
+            name: 'Moderation',
+            value: 'kick, ban, warn, warnings, purge, timeout, mute'
+          },
+          {
+            name: 'Utility',
+            value: 'ping, help, membercount, roles, channelinfo, serverinfo, userinfo, about'
+          },
+          {
+            name: 'Server Control',
+            value: 'slowmode, lock, unban, clearwarnings, roleadd, roleremove'
+          }
         ]
       };
 
@@ -205,18 +307,18 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'channelinfo') {
       const channel = interaction.channel;
 
-      const embed = {
-        color: 0x2b2d31,
-        title: 'Channel Info',
-        fields: [
-          { name: 'Name', value: channel.name, inline: true },
-          { name: 'ID', value: channel.id, inline: true },
-          { name: 'Type', value: channel.type.toString(), inline: true },
-          { name: 'Created', value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:R>` }
-        ]
-      };
-
-      return interaction.reply({ embeds: [embed] });
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: 'Channel Info',
+          fields: [
+            { name: 'Name', value: channel.name, inline: true },
+            { name: 'ID', value: channel.id, inline: true },
+            { name: 'Type', value: String(channel.type), inline: true },
+            { name: 'Created', value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:R>` }
+          ]
+        }]
+      });
     }
 
     // SLOWMODE
@@ -227,7 +329,7 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(`Slowmode set to ${seconds} seconds`);
     }
 
-    // LOCK CHANNEL
+    // LOCK
     if (commandName === 'lock') {
       await interaction.channel.permissionOverwrites.edit(
         interaction.guild.roles.everyone,
@@ -253,7 +355,7 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(`Cleared all warnings for ${user.tag}`);
     }
 
-    // MUTE
+    // MUTE (TIMEOUT)
     if (commandName === 'mute') {
       const user = interaction.options.getUser('user');
       const time = interaction.options.getInteger('time');
@@ -268,7 +370,7 @@ client.on('interactionCreate', async (interaction) => {
     console.error(err);
 
     if (!interaction.replied && !interaction.deferred) {
-      interaction.reply({
+      return interaction.reply({
         content: 'Error occurred while executing command.',
         ephemeral: true
       });
