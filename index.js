@@ -152,6 +152,7 @@ if (commandName === 'ban') {
 }
 
 if (commandName === 'warn') {
+  console.log("NEW WARN CODE RUNNING");
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
 
