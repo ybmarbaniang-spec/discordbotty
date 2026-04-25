@@ -18,7 +18,7 @@ const warns = new Map();
 
 /* ---------------- MOD LOG SYSTEM ---------------- */
 
-const MOD_LOG_CHANNEL_ID = "YOUR_CHANNEL_ID";
+const MOD_LOG_CHANNEL_ID = "1433417790202839040";
 
 const formatLog = (title, user, reason, moderator) => {
   return `Action: ${title}
