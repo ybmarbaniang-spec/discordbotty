@@ -143,38 +143,82 @@ client.on('interactionCreate', async (interaction) => {
 
     // SERVER INFO
     if (commandName === 'serverinfo') {
-      return interaction.reply(`Server: ${interaction.guild.name}`);
+  const { guild } = interaction;
+
+  const embed = {
+    color: 0x2b2d31,
+    title: `${guild.name}`,
+    thumbnail: { url: guild.iconURL() },
+    fields: [
+      { name: 'Owner', value: `<@${guild.ownerId}>`, inline: true },
+      { name: 'Members', value: `${guild.memberCount}`, inline: true },
+      { name: 'Server ID', value: guild.id, inline: false },
+      { name: 'Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: false }
+    ]
+  };
+
+  return interaction.reply({ embeds: [embed] });
     }
 
     // USER INFO
     if (commandName === 'userinfo') {
-      const user = interaction.options.getUser('user');
-      const member = await interaction.guild.members.fetch(user.id);
+  const user = interaction.options.getUser('user');
+  const member = await interaction.guild.members.fetch(user.id);
 
-      return interaction.reply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: user.tag,
-          thumbnail: { url: user.displayAvatarURL() },
-          fields: [
-            { name: 'ID', value: user.id },
-            { name: 'Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>` },
-            { name: 'Joined', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` }
-          ]
-        }]
-      });
+  const embed = {
+    color: 0x2b2d31,
+    title: `${user.tag}`,
+    thumbnail: { url: user.displayAvatarURL() },
+    fields: [
+      { name: 'User ID', value: user.id, inline: false },
+      { name: 'Account Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
+      { name: 'Joined Server', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
+      { name: 'Roles', value: member.roles.cache.map(r => r.name).join(', ') || 'None', inline: false }
+    ]
+  };
+
+  return interaction.reply({ embeds: [embed] });
     }
 
     // ABOUT
     if (commandName === 'about') {
-      return interaction.reply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: 'About Bot',
-          description: 'Moderation bot for Discord servers'
-        }]
-      });
-    }
+  const embed = {
+    color: 0x2b2d31,
+    title: 'About This Bot',
+    description: 'A powerful moderation and utility bot built to help manage your server smoothly, keep order, and give staff quick control tools.',
+    fields: [
+      {
+        name: 'Commands',
+        value: [
+          'kick',
+          'ban',
+          'warn',
+          'warnings',
+          'purge',
+          'timeout',
+          'serverinfo',
+          'userinfo',
+          'about',
+          'roleadd',
+          'roleremove'
+        ].map(cmd => `• /${cmd}`).join('\n'),
+        inline: false
+      },
+      {
+        name: 'Status',
+        value: 'Online & Running',
+        inline: true
+      },
+      {
+        name: 'Developer',
+        value: '<@1345041788804534343>',
+        inline: true
+      }
+    ]
+  };
+
+  return interaction.reply({ embeds: [embed] });
+    };
 
     // ROLE ADD
     if (commandName === 'roleadd') {
