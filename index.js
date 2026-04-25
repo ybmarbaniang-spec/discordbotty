@@ -190,11 +190,36 @@ if (commandName === 'timeout') {
 
 if (commandName === 'userinfo') {
   const user = interaction.options.getUser('user');
-  return interaction.reply(`User: ${user.tag}`);
+  const member = await interaction.guild.members.fetch(user.id);
+
+  const embed = {
+    color: 0x00bfff,
+    title: `👤 ${user.tag}`,
+    thumbnail: { url: user.displayAvatarURL() },
+    fields: [
+      { name: '🆔 User ID', value: user.id, inline: false },
+      { name: '📅 Account Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`, inline: true },
+      { name: '📥 Joined Server', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
+      { name: '🎭 Roles', value: member.roles.cache.map(r => r.name).join(', '), inline: false }
+    ]
+  };
+
+  await interaction.reply({ embeds: [embed] });
 }
 
 if (commandName === 'about') {
-  return interaction.reply('Moderation bot');
+  const embed = {
+    color: 0x00ffcc,
+    title: '🤖 About This Bot',
+    description: 'A powerful moderation bot designed to manage your server efficiently.',
+    fields: [
+      { name: '⚙️ Features', value: 'Kick, Ban, Warn, Roles, Timeout, Info', inline: false },
+      { name: '🚀 Status', value: 'Online & Running', inline: true },
+      { name: '👑 Developer', value: 'You 😎', inline: true }
+    ]
+  };
+
+  await interaction.reply({ embeds: [embed] });
 }
     if (commandName === 'roleadd') {
   const user = interaction.options.getUser('user');
