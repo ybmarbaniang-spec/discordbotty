@@ -178,10 +178,7 @@ if (commandName === 'warn') {
     ]
   };
 
-  await interaction.editReply({ embeds: [embed] });
-}
-
-  await interaction.reply({ embeds: [embed] });
+  return interaction.editReply({ embeds: [embed] });
 }
 
 if (commandName === 'warnings') {
@@ -199,13 +196,10 @@ if (commandName === 'warnings') {
     .map((w, i) => `${i + 1}. ${w.reason} (by ${w.moderator})`)
     .join('\n');
 
-  const embed = {
-    color: 0x2b2d31,
-    title: `Warnings for ${user.tag}`,
-    description: formatted
-  };
-
-  await interaction.reply({ embeds: [embed] });
+  return interaction.reply({
+    content: `Warnings for ${user.tag}:\n\n${formatted}`,
+    ephemeral: true
+  });
 }
     if (commandName === 'purge') {
   const amount = interaction.options.getInteger('amount');
@@ -258,7 +252,7 @@ if (commandName === 'about') {
   };
 
   await interaction.reply({ embeds: [embed] });
-}
+
     if (commandName === 'roleadd') {
   const user = interaction.options.getUser('user');
   const role = interaction.options.getRole('role');
