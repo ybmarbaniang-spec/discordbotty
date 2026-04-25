@@ -118,6 +118,25 @@ client.on('interactionCreate', async interaction => {
   const { commandName } = interaction;
 
   try {
+
+    if (commandName === 'serverinfo') {
+  const { guild } = interaction;
+
+  const embed = {
+    color: 0x5865F2,
+    title: `📊 ${guild.name}`,
+    thumbnail: { url: guild.iconURL() },
+    fields: [
+      { name: '👑 Owner', value: `<@${guild.ownerId}>`, inline: true },
+      { name: '👥 Members', value: `${guild.memberCount}`, inline: true },
+      { name: '🆔 Server ID', value: guild.id, inline: false },
+      { name: '📅 Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: false }
+    ]
+  };
+
+  await interaction.reply({ embeds: [embed] });
+    }
+    
 if (commandName === 'kick') {
   const user = interaction.options.getUser('user');
   const member = await interaction.guild.members.fetch(user.id);
