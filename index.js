@@ -16,73 +16,119 @@ const client = new Client({
 
 const warns = new Map();
 
+/* ---------------- MOD LOG SYSTEM ---------------- */
+
+const MOD_LOG_CHANNEL_ID = "YOUR_CHANNEL_ID";
+
+const formatLog = (title, user, reason, moderator) => {
+  return `Action: ${title}
+User: ${user}
+Reason: ${reason}
+Moderator: ${moderator}
+Time: ${new Date().toLocaleString()}`;
+};
+
+const sendLog = async (guild, message) => {
+  try {
+    const channel = guild.channels.cache.get(MOD_LOG_CHANNEL_ID);
+    if (!channel) return;
+    await channel.send({ content: message });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+/* ---------------- COMMANDS ---------------- */
+
 const commands = [
-  { name: 'kick', description: 'Kick a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'reason', type: 3, description: 'Reason' }] },
-  { name: 'ban', description: 'Ban a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'reason', type: 3, description: 'Reason' }] },
-  { name: 'warn', description: 'Warn a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'reason', type: 3, description: 'Reason' }] },
-  { name: 'warnings', description: 'View warnings', options: [{ name: 'user', type: 6, required: true, description: 'User' }] },
-  { name: 'purge', description: 'Delete messages', options: [{ name: 'amount', type: 4, required: true, description: 'Amount' }] },
-  { name: 'timeout', description: 'Timeout a user', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'time', type: 4, required: true, description: 'Seconds' }] },
+  { name: 'kick', description: 'Kick a user', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'reason', type: 3, required: false, description: 'Reason' }
+  ]},
+
+  { name: 'ban', description: 'Ban a user', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'reason', type: 3, required: false, description: 'Reason' }
+  ]},
+
+  { name: 'warn', description: 'Warn a user', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'reason', type: 3, required: false, description: 'Reason' }
+  ]},
+
+  { name: 'warnings', description: 'View warnings', options: [
+    { name: 'user', type: 6, required: true, description: 'User' }
+  ]},
+
+  { name: 'purge', description: 'Delete messages', options: [
+    { name: 'amount', type: 4, required: true, description: 'Amount' }
+  ]},
+
+  { name: 'timeout', description: 'Timeout user', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'time', type: 4, required: true, description: 'Seconds' }
+  ]},
 
   { name: 'serverinfo', description: 'Server info' },
-  { name: 'userinfo', description: 'User info', options: [{ name: 'user', type: 6, required: true, description: 'User' }] },
+  { name: 'userinfo', description: 'User info', options: [
+    { name: 'user', type: 6, required: true, description: 'User' }
+  ]},
+
   { name: 'about', description: 'About bot' },
 
-  { name: 'roleadd', description: 'Add role', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'role', type: 8, required: true, description: 'Role' }] },
-  { name: 'roleremove', description: 'Remove role', options: [{ name: 'user', type: 6, required: true, description: 'User' }, { name: 'role', type: 8, required: true, description: 'Role' }] },
+  { name: 'roleadd', description: 'Add role', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'role', type: 8, required: true, description: 'Role' }
+  ]},
+
+  { name: 'roleremove', description: 'Remove role', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'role', type: 8, required: true, description: 'Role' }
+  ]},
 
   { name: 'ping', description: 'Bot latency' },
-  { name: 'help', description: 'Commands list' },
-  { name: 'membercount', description: 'Server members' },
-  { name: 'roles', description: 'Roles list' },
+  { name: 'help', description: 'All commands' },
+  { name: 'membercount', description: 'Member count' },
+  { name: 'roles', description: 'List roles' },
   { name: 'channelinfo', description: 'Channel info' },
 
-  {
-    name: 'slowmode',
-    description: 'Set slowmode',
-    options: [{ name: 'seconds', type: 4, required: true, description: 'Seconds' }]
-  },
+  { name: 'slowmode', description: 'Set slowmode', options: [
+    { name: 'seconds', type: 4, required: true, description: 'Seconds' }
+  ]},
 
   { name: 'lock', description: 'Lock channel' },
 
-  {
-    name: 'unban',
-    description: 'Unban user',
-    options: [{ name: 'user_id', type: 3, required: true, description: 'User ID' }]
-  },
+  { name: 'unban', description: 'Unban user', options: [
+    { name: 'user_id', type: 3, required: true, description: 'User ID' }
+  ]},
 
-  {
-    name: 'clearwarnings',
-    description: 'Clear warnings',
-    options: [{ name: 'user', type: 6, required: true, description: 'User' }]
-  },
+  { name: 'clearwarnings', description: 'Clear warnings', options: [
+    { name: 'user', type: 6, required: true, description: 'User' }
+  ]},
 
-  {
-    name: 'mute',
-    description: 'Mute user',
-    options: [
-      { name: 'user', type: 6, required: true, description: 'User' },
-      { name: 'time', type: 4, required: true, description: 'Seconds' }
-    ]
-  }
+  { name: 'mute', description: 'Mute user', options: [
+    { name: 'user', type: 6, required: true, description: 'User' },
+    { name: 'time', type: 4, required: true, description: 'Seconds' }
+  ]}
 ];
+
+/* ---------------- READY ---------------- */
 
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-  try {
-    await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-      { body: commands }
-    );
+  await rest.put(
+    Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+    { body: commands }
+  );
 
-    console.log('Commands registered');
-  } catch (err) {
-    console.error(err);
-  }
+  console.log('Commands registered');
 });
+
+/* ---------------- COMMAND HANDLER ---------------- */
+
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -90,290 +136,220 @@ client.on('interactionCreate', async (interaction) => {
 
   try {
 
-    // KICK
+    /* KICK */
     if (commandName === 'kick') {
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason';
       const member = await interaction.guild.members.fetch(user.id);
 
       await member.kick(reason);
-      return interaction.reply(`Kicked ${user.tag}`);
+
+      await sendLog(
+        interaction.guild,
+        formatLog('Kick', user.tag, reason, interaction.user.tag)
+      );
+
+      return interaction.reply(`Kicked ${user.tag}.`);
     }
 
-    // BAN
+    /* BAN */
     if (commandName === 'ban') {
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason';
       const member = await interaction.guild.members.fetch(user.id);
 
       await member.ban({ reason });
-      return interaction.reply(`Banned ${user.tag}`);
+
+      await sendLog(
+        interaction.guild,
+        formatLog('Ban', user.tag, reason, interaction.user.tag)
+      );
+
+      return interaction.reply(`Banned ${user.tag}.`);
     }
 
-    // WARN
+    /* WARN */
     if (commandName === 'warn') {
-      await interaction.deferReply();
-
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason';
 
       if (!warns.has(user.id)) warns.set(user.id, []);
+      warns.get(user.id).push(reason);
 
-      warns.get(user.id).push({
-        reason,
-        moderator: interaction.user.tag,
-        date: new Date().toLocaleString()
-      });
+      await sendLog(
+        interaction.guild,
+        formatLog('Warn', user.tag, reason, interaction.user.tag)
+      );
 
-      const total = warns.get(user.id).length;
-
-      return interaction.editReply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: 'User Warned',
-          fields: [
-            { name: 'User', value: user.tag, inline: true },
-            { name: 'Moderator', value: interaction.user.tag, inline: true },
-            { name: 'Reason', value: reason },
-            { name: 'Total Warnings', value: `${total}` }
-          ]
-        }]
-      });
+      return interaction.reply(`Warned ${user.tag}.`);
     }
 
-    // WARNINGS
+    /* WARNINGS */
     if (commandName === 'warnings') {
       const user = interaction.options.getUser('user');
-      const userWarns = warns.get(user.id) || [];
+      const list = warns.get(user.id) || [];
 
-      if (!userWarns.length) {
-        return interaction.reply({ content: `${user.tag} has no warnings.`, ephemeral: true });
-      }
-
-      const formatted = userWarns
-        .map((w, i) => `${i + 1}. ${w.reason} (by ${w.moderator})`)
-        .join('\n');
-
-      return interaction.reply({
-        content: `Warnings for ${user.tag}:\n\n${formatted}`,
-        ephemeral: true
-      });
+      return interaction.reply(
+        list.length
+          ? `Warnings for ${user.tag}:\n${list.map((w, i) => `${i + 1}. ${w}`).join('\n')}`
+          : `${user.tag} has no warnings.`
+      );
     }
 
-    // PURGE
+    /* PURGE */
     if (commandName === 'purge') {
       const amount = interaction.options.getInteger('amount');
       await interaction.channel.bulkDelete(amount, true);
-      return interaction.reply(`Deleted ${amount} messages`);
+      return interaction.reply(`Deleted ${amount} messages.`);
     }
 
-    // TIMEOUT
-    if (commandName === 'timeout') {
+    /* TIMEOUT / MUTE */
+    if (commandName === 'mute' || commandName === 'timeout') {
       const user = interaction.options.getUser('user');
       const time = interaction.options.getInteger('time');
-
       const member = await interaction.guild.members.fetch(user.id);
+
       await member.timeout(time * 1000);
 
-      return interaction.reply(`${user.tag} timed out`);
+      await sendLog(
+        interaction.guild,
+        formatLog('Mute', user.tag, `${time}s`, interaction.user.tag)
+      );
+
+      return interaction.reply(`Muted ${user.tag} for ${time}s.`);
     }
 
-    // SERVER INFO (FULL)
+    /* SERVER INFO */
     if (commandName === 'serverinfo') {
-      const guild = interaction.guild;
+      const g = interaction.guild;
 
       return interaction.reply({
         embeds: [{
-          color: 0x2b2d31,
-          title: guild.name,
-          thumbnail: { url: guild.iconURL() },
+          title: g.name,
           fields: [
-            { name: 'Owner', value: `<@${guild.ownerId}>`, inline: true },
-            { name: 'Members', value: `${guild.memberCount}`, inline: true },
-            { name: 'Server ID', value: guild.id },
-            { name: 'Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>` }
+            { name: 'Members', value: `${g.memberCount}` },
+            { name: 'ID', value: g.id },
+            { name: 'Created', value: `<t:${Math.floor(g.createdTimestamp / 1000)}:R>` }
           ]
         }]
       });
     }
 
-    // USER INFO (FULL)
+    /* USER INFO */
     if (commandName === 'userinfo') {
       const user = interaction.options.getUser('user');
       const member = await interaction.guild.members.fetch(user.id);
 
       return interaction.reply({
         embeds: [{
-          color: 0x2b2d31,
           title: user.tag,
-          thumbnail: { url: user.displayAvatarURL() },
           fields: [
             { name: 'ID', value: user.id },
-            { name: 'Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>` },
             { name: 'Joined', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` }
           ]
         }]
       });
     }
 
-    // ABOUT (FULL + CLEAN)
+    /* ABOUT */
     if (commandName === 'about') {
       return interaction.reply({
         embeds: [{
-          color: 0x2b2d31,
-          title: 'About This Bot',
-          description: 'A moderation and utility bot designed for managing servers smoothly and efficiently.',
+          title: 'About Bot',
+          description: 'Moderation and utility bot.',
           fields: [
-            {
-              name: 'Commands',
-              value: commands.map(c => `/${c.name}`).join('\n')
-            },
-            {
-              name: 'Status',
-              value: 'Online'
-            }
+            { name: 'Developer', value: '<@1345041788804534343>' }
           ]
         }]
       });
     }
 
-    // ROLE ADD
-    if (commandName === 'roleadd') {
-      const user = interaction.options.getUser('user');
-      const role = interaction.options.getRole('role');
-
-      const member = await interaction.guild.members.fetch(user.id);
-      await member.roles.add(role);
-
-      return interaction.reply(`Added role to ${user.tag}`);
-    }
-
-    // ROLE REMOVE
-    if (commandName === 'roleremove') {
-      const user = interaction.options.getUser('user');
-      const role = interaction.options.getRole('role');
-
-      const member = await interaction.guild.members.fetch(user.id);
-      await member.roles.remove(role);
-
-      return interaction.reply(`Removed role from ${user.tag}`);
-    }
-    // PING
+    /* PING */
     if (commandName === 'ping') {
-      return interaction.reply(`Pong! ${client.ws.ping}ms`);
+      return interaction.reply(`Pong! ${client.ws.ping}ms.`);
     }
 
-    // HELP
-    if (commandName === 'help') {
-      const embed = {
-        color: 0x2b2d31,
-        title: 'Command List',
-        description: 'All available commands:',
-        fields: [
-          {
-            name: 'Moderation',
-            value: 'kick, ban, warn, warnings, purge, timeout, mute'
-          },
-          {
-            name: 'Utility',
-            value: 'ping, help, membercount, roles, channelinfo, serverinfo, userinfo, about'
-          },
-          {
-            name: 'Server Control',
-            value: 'slowmode, lock, unban, clearwarnings, roleadd, roleremove'
-          }
-        ]
-      };
-
-      return interaction.reply({ embeds: [embed] });
-    }
-
-    // MEMBER COUNT
+    /* MEMBER COUNT */
     if (commandName === 'membercount') {
-      return interaction.reply(`Member Count: ${interaction.guild.memberCount}`);
+      return interaction.reply(`Member Count: ${interaction.guild.memberCount}.`);
     }
 
-    // ROLES
+    /* ROLES */
     if (commandName === 'roles') {
-      const roles = interaction.guild.roles.cache
-        .map(r => r.name)
-        .slice(0, 20)
-        .join(', ');
-
+      const roles = interaction.guild.roles.cache.map(r => r.name).slice(0, 20).join(', ');
       return interaction.reply(`Roles: ${roles}`);
     }
 
-    // CHANNEL INFO
+    /* CHANNEL INFO */
     if (commandName === 'channelinfo') {
-      const channel = interaction.channel;
+      const c = interaction.channel;
 
       return interaction.reply({
         embeds: [{
-          color: 0x2b2d31,
           title: 'Channel Info',
           fields: [
-            { name: 'Name', value: channel.name, inline: true },
-            { name: 'ID', value: channel.id, inline: true },
-            { name: 'Type', value: String(channel.type), inline: true },
-            { name: 'Created', value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:R>` }
+            { name: 'Name', value: c.name },
+            { name: 'ID', value: c.id }
           ]
         }]
       });
     }
 
-    // SLOWMODE
+    /* SLOWMODE */
     if (commandName === 'slowmode') {
       const seconds = interaction.options.getInteger('seconds');
-
       await interaction.channel.setRateLimitPerUser(seconds);
-      return interaction.reply(`Slowmode set to ${seconds} seconds`);
+      return interaction.reply(`Slowmode set to ${seconds}s.`);
     }
 
-    // LOCK
+    /* LOCK */
     if (commandName === 'lock') {
       await interaction.channel.permissionOverwrites.edit(
         interaction.guild.roles.everyone,
         { SendMessages: false }
       );
 
-      return interaction.reply('Channel locked');
+      return interaction.reply('Channel locked.');
     }
 
-    // UNBAN
+    /* UNBAN */
     if (commandName === 'unban') {
-      const userId = interaction.options.getString('user_id');
-
-      await interaction.guild.bans.remove(userId);
-      return interaction.reply(`Unbanned user ${userId}`);
+      const id = interaction.options.getString('user_id');
+      await interaction.guild.bans.remove(id);
+      return interaction.reply(`Unbanned ${id}.`);
     }
 
-    // CLEAR WARNINGS
+    /* CLEAR WARNINGS */
     if (commandName === 'clearwarnings') {
       const user = interaction.options.getUser('user');
-
       warns.set(user.id, []);
-      return interaction.reply(`Cleared all warnings for ${user.tag}`);
+      return interaction.reply(`Cleared warnings for ${user.tag}.`);
     }
 
-    // MUTE (TIMEOUT)
-    if (commandName === 'mute') {
+    /* ROLE ADD */
+    if (commandName === 'roleadd') {
       const user = interaction.options.getUser('user');
-      const time = interaction.options.getInteger('time');
-
+      const role = interaction.options.getRole('role');
       const member = await interaction.guild.members.fetch(user.id);
-      await member.timeout(time * 1000);
 
-      return interaction.reply(`Muted ${user.tag} for ${time}s`);
+      await member.roles.add(role);
+      return interaction.reply(`Added role to ${user.tag}.`);
+    }
+
+    /* ROLE REMOVE */
+    if (commandName === 'roleremove') {
+      const user = interaction.options.getUser('user');
+      const role = interaction.options.getRole('role');
+      const member = await interaction.guild.members.fetch(user.id);
+
+      await member.roles.remove(role);
+      return interaction.reply(`Removed role from ${user.tag}.`);
     }
 
   } catch (err) {
     console.error(err);
-
-    if (!interaction.replied && !interaction.deferred) {
-      return interaction.reply({
-        content: 'Error occurred while executing command.',
-        ephemeral: true
-      });
+    if (!interaction.replied) {
+      interaction.reply('Error occurred.');
     }
   }
 });
