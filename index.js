@@ -151,23 +151,52 @@ if (commandName === 'ban') {
   return interaction.reply(`Banned ${user.tag}`);
 }
 
-if (commandName === 'warn') {
+if (commandName === 'warnings') {
   const user = interaction.options.getUser('user');
-  const reason = interaction.options.getString('reason') || 'No reason';
+  const userWarns = warns.get(user.id) || [];
 
-  if (!warns.has(user.id)) warns.set(user.id, []);
-  warns.get(user.id).push(reason);
+  if (userWarns.length === 0) {
+    return interaction.reply({
+      content: `${user.tag} has no warnings.`,
+      ephemeral: true
+    });
+  }
 
-  return interaction.reply(`${user.tag} warned`);
+  const formatted = userWarns
+    .map((w, i) => `${i + 1}. ${w.reason} (by ${w.moderator})`)
+    .join('\n');
+
+  const embed = {
+    color: 0x2b2d31,
+    title: `Warnings for ${user.tag}`,
+    description: formatted
+  };
+
+  await interaction.reply({ embeds: [embed] });
 }
 
 if (commandName === 'warnings') {
   const user = interaction.options.getUser('user');
-  const list = warns.get(user.id) || [];
+  const userWarns = warns.get(user.id) || [];
 
-  return interaction.reply(
-    `${user.tag} warnings:\n${list.length ? list.join('\n') : 'None'}`
-  );
+  if (userWarns.length === 0) {
+    return interaction.reply({
+      content: `${user.tag} has no warnings.`,
+      ephemeral: true
+    });
+  }
+
+  const formatted = userWarns
+    .map((w, i) => `${i + 1}. ${w.reason} (by ${w.moderator})`)
+    .join('\n');
+
+  const embed = {
+    color: 0x2b2d31,
+    title: `Warnings for ${user.tag}`,
+    description: formatted
+  };
+
+  await interaction.reply({ embeds: [embed] });
 }
     if (commandName === 'purge') {
   const amount = interaction.options.getInteger('amount');
