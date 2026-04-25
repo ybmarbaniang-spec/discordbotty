@@ -270,11 +270,10 @@ if (commandName === 'roleremove') {
   const member = await interaction.guild.members.fetch(user.id);
   await member.roles.remove(role);
 
-  return interaction.reply(`Removed role from ${user.tag}`);
+  return interaction.reply(`Removed role from ${user.tag}`
+try {
+  // your commands
+} catch (err) {
+  console.error(err);
 }
-    } catch (err) {
-    console.error(err);
-    interaction.reply({ content: 'Error occurred', ephemeral: true });
-  }
-});
 client.login(process.env.TOKEN);
