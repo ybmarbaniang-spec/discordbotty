@@ -215,7 +215,7 @@ if (commandName === 'about') {
     fields: [
       { name: ' Features', value: 'Kick, Ban, Warn, Roles, Timeout, Info', inline: false },
       { name: ' Status', value: 'Online & Running', inline: true },
-      { name: ' Developer', value: '1345041788804534343', inline: true }
+      { name: ' Developer', value: '<@1345041788804534343>', inline: true }
     ]
   };
 
