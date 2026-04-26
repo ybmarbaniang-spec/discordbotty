@@ -160,33 +160,77 @@ client.on('interactionCreate', async (interaction) => {
 
     /* WARN + DM */
     if (commandName === 'warn') {
-      const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason provided';
+  const user = interaction.options.getUser('user');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
 
-      if (!warns.has(user.id)) warns.set(user.id, []);
-      warns.get(user.id).push(reason);
+  let userWarns = warns.get(user.id) || [];
 
-      const embed = buildModEmbed('Warn', user.tag, reason, interaction.user.tag);
+  const warnEntry = {
+    reason,
+    moderator: interaction.user.tag,
+    time: new Date().toLocaleString()
+  };
 
-      try {
-        await user.send({ embeds: [embed] });
-      } catch {}
+  userWarns.push(warnEntry);
+  warns.set(user.id, userWarns);
 
-      await sendLog(interaction.guild, embed);
+  const embed = {
+    color: 0x2b2d31,
+    title: 'User Warned',
+    fields: [
+      { name: 'User', value: user.tag },
+      { name: 'Reason', value: reason },
+      { name: 'Moderator', value: interaction.user.tag },
+      { name: 'Time', value: warnEntry.time },
+      { name: 'Total Warnings', value: `${userWarns.length}` }
+    ]
+  };
 
-      return interaction.reply({ embeds: [embed] });
+  let dmSent = true;
+
+  try {
+    await user.send({ embeds: [embed] });
+  } catch (err) {
+    dmSent = false;
+  }
+
+  await sendLog(interaction.guild, embed);
+
+  return interaction.reply({
+    embeds: [embed],
+    content: dmSent ? null : 'Warning sent, but user DMs are disabled.'
+  });
     }
 
     /* WARNINGS */
     if (commandName === 'warnings') {
-      const user = interaction.options.getUser('user');
-      const list = warns.get(user.id) || [];
+  const user = interaction.options.getUser('user');
+  const userWarns = warns.get(user.id) || [];
 
-      return interaction.reply({
-        content: list.length
-          ? list.map((w, i) => `${i + 1}. ${w}`).join('\n')
-          : 'No warnings.'
-      });
+  if (userWarns.length === 0) {
+    return interaction.reply({
+      content: `${user.tag} currently has no recorded warnings.`,
+      ephemeral: true
+    });
+  }
+
+  const embed = {
+    color: 0x2b2d31,
+    title: `Warning History: ${user.tag}`,
+    description: `Below is the full moderation history of warnings issued to this user.`,
+    fields: userWarns.map((w, i) => ({
+      name: `Warning #${i + 1}`,
+      value:
+        `Reason: ${w.reason}.\n` +
+        `Moderator: ${w.moderator}.\n` +
+        `Issued on: ${w.time}.`
+    })),
+    footer: {
+      text: `Total warnings: ${userWarns.length}.`
+    }
+  };
+
+  return interaction.reply({ embeds: [embed] });
     }
 
     /* CLEAR WARNINGS */
