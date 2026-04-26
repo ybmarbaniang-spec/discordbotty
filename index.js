@@ -35,17 +35,17 @@ const sendLog = async (guild, embed) => {
 /* ---------------- COMMANDS (21 TOTAL) ---------------- */
 
 const commands = [
-  { name: 'kick2', description: 'Kick a user', options: [
+  { name: 'kickuser', description: 'Kick a user', options: [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'reason', type: 3, required: false, description: 'Reason' }
   ]},
 
-  { name: 'ban2', description: 'Ban a user', options: [
+  { name: 'banuser', description: 'Ban a user', options: [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'reason', type: 3, required: false, description: 'Reason' }
   ]},
 
-  { name: 'warn', description: 'Warn a user', options: [
+  { name: 'warnuser', description: 'Warn a user', options: [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'reason', type: 3, required: false, description: 'Reason' }
   ]},
@@ -131,7 +131,7 @@ client.on('interactionCreate', async (interaction) => {
   try {
 
     /* KICK */
-    if (commandName === 'kick2') {
+    if (commandName === 'kickuser') {
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason provided';
       const member = await interaction.guild.members.fetch(user.id);
@@ -145,7 +145,7 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     /* BAN */
-    if (commandName === 'ban2') {
+    if (commandName === 'banuser') {
       const user = interaction.options.getUser('user');
       const reason = interaction.options.getString('reason') || 'No reason provided';
       const member = await interaction.guild.members.fetch(user.id);
@@ -159,7 +159,7 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     /* WARN + DM */
-    if (commandName === 'warn') {
+    if (commandName === 'warnuser') {
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
 
