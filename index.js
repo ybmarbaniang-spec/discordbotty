@@ -16,32 +16,34 @@ const client = new Client({
 
 const warns = new Map();
 
-/* ---------------- MOD LOG ---------------- */
+/* ---------------- MOD LOG SYSTEM ---------------- */
 
 const MOD_LOG_CHANNEL_ID = "1433417790202839040";
 
-const formatLog = (title, user, reason, moderator) => {
-  return `Action: ${title}
-User: ${user}
-Reason: ${reason || 'No reason provided'}
-Time: ${new Date().toLocaleString()}
-Moderator: ${moderator}`;
+const buildModEmbed = (title, user, reason, moderator) => {
+  return {
+    color: 0x2b2d31,
+    title: `Moderation Action: ${title}`,
+    fields: [
+      { name: 'User', value: user, inline: false },
+      { name: 'Reason', value: reason || 'No reason provided', inline: false },
+      { name: 'Moderator', value: moderator, inline: false },
+      { name: 'Time', value: new Date().toLocaleString(), inline: false }
+    ]
+  };
 };
 
-const sendLog = async (guild, title, user, reason, moderator) => {
+const sendLog = async (guild, embed) => {
   try {
     const channel = guild.channels.cache.get(MOD_LOG_CHANNEL_ID);
     if (!channel) return;
-
-    await channel.send({
-      content: "```" + formatLog(title, user, reason, moderator) + "```"
-    });
+    await channel.send({ embeds: [embed] });
   } catch (err) {
     console.error(err);
   }
 };
 
-/* ---------------- COMMANDS ---------------- */
+/* ---------------- SLASH COMMANDS ---------------- */
 
 const commands = [
   { name: 'kick', description: 'Kick a user', options: [
@@ -67,7 +69,7 @@ const commands = [
     { name: 'amount', type: 4, required: true }
   ]},
 
-  { name: 'timeout', description: 'Timeout a user', options: [
+  { name: 'timeout', description: 'Timeout user', options: [
     { name: 'user', type: 6, required: true },
     { name: 'time', type: 4, required: true }
   ]},
@@ -122,7 +124,7 @@ client.once('ready', async () => {
     { body: commands }
   );
 
-  console.log('Commands registered');
+  console.log('Slash commands registered');
 });
 
 /* ---------------- COMMAND HANDLER ---------------- */
@@ -137,40 +139,44 @@ client.on('interactionCreate', async (interaction) => {
     /* KICK */
     if (commandName === 'kick') {
       const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason';
+      const reason = interaction.options.getString('reason') || 'No reason provided';
       const member = await interaction.guild.members.fetch(user.id);
 
+      const embed = buildModEmbed('Kick', user.tag, reason, interaction.user.tag);
+
       await member.kick(reason);
+      await sendLog(interaction.guild, embed);
 
-      await sendLog(interaction.guild, 'Kick', user.tag, reason, interaction.user.tag);
-
-      return interaction.reply(`${user.tag} was kicked.`);
+      return interaction.reply({ embeds: [embed] });
     }
 
     /* BAN */
     if (commandName === 'ban') {
       const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason';
+      const reason = interaction.options.getString('reason') || 'No reason provided';
       const member = await interaction.guild.members.fetch(user.id);
 
+      const embed = buildModEmbed('Ban', user.tag, reason, interaction.user.tag);
+
       await member.ban({ reason });
+      await sendLog(interaction.guild, embed);
 
-      await sendLog(interaction.guild, 'Ban', user.tag, reason, interaction.user.tag);
-
-      return interaction.reply(`${user.tag} was banned.`);
+      return interaction.reply({ embeds: [embed] });
     }
 
     /* WARN */
     if (commandName === 'warn') {
       const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason';
+      const reason = interaction.options.getString('reason') || 'No reason provided';
 
       if (!warns.has(user.id)) warns.set(user.id, []);
       warns.get(user.id).push(reason);
 
-      await sendLog(interaction.guild, 'Warn', user.tag, reason, interaction.user.tag);
+      const embed = buildModEmbed('Warn', user.tag, reason, interaction.user.tag);
 
-      return interaction.reply(`${user.tag} was warned.`);
+      await sendLog(interaction.guild, embed);
+
+      return interaction.reply({ embeds: [embed] });
     }
 
     /* WARNINGS */
@@ -198,11 +204,12 @@ client.on('interactionCreate', async (interaction) => {
       const time = interaction.options.getInteger('time');
       const member = await interaction.guild.members.fetch(user.id);
 
+      const embed = buildModEmbed('Timeout', user.tag, `${time}s`, interaction.user.tag);
+
       await member.timeout(time * 1000);
+      await sendLog(interaction.guild, embed);
 
-      await sendLog(interaction.guild, 'Timeout', user.tag, `${time}s`, interaction.user.tag);
-
-      return interaction.reply(`${user.tag} was timed out.`);
+      return interaction.reply({ embeds: [embed] });
     }
 
     /* SERVER INFO */
@@ -211,6 +218,7 @@ client.on('interactionCreate', async (interaction) => {
 
       return interaction.reply({
         embeds: [{
+          color: 0x2b2d31,
           title: g.name,
           fields: [
             { name: 'Members', value: `${g.memberCount}` },
@@ -228,6 +236,7 @@ client.on('interactionCreate', async (interaction) => {
 
       return interaction.reply({
         embeds: [{
+          color: 0x2b2d31,
           title: user.tag,
           fields: [
             { name: 'ID', value: user.id },
@@ -241,6 +250,7 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'about') {
       return interaction.reply({
         embeds: [{
+          color: 0x2b2d31,
           title: 'About Bot',
           description: 'Moderation bot'
         }]
@@ -252,7 +262,7 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(`Pong! ${client.ws.ping}ms`);
     }
 
-    /* MEMBERCOUNT */
+    /* MEMBER COUNT */
     if (commandName === 'membercount') {
       return interaction.reply(`${interaction.guild.memberCount}`);
     }
@@ -269,6 +279,7 @@ client.on('interactionCreate', async (interaction) => {
 
       return interaction.reply({
         embeds: [{
+          color: 0x2b2d31,
           title: 'Channel Info',
           fields: [
             { name: 'Name', value: c.name },
