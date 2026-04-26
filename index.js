@@ -163,7 +163,13 @@ client.on('interactionCreate', async (interaction) => {
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
 
-  let userWarns = warns.get(user.id) || [];
+  const userId = user.id;
+
+if (!warns.has(userId)) {
+  warns.set(userId, []);
+}
+
+const userWarns = warns.get(userId);
 
   const warnEntry = {
     reason,
@@ -205,7 +211,8 @@ client.on('interactionCreate', async (interaction) => {
     /* WARNINGS */
     if (commandName === 'warnings') {
   const user = interaction.options.getUser('user');
-  const userWarns = warns.get(user.id) || [];
+  const userId = user.id;
+const userWarns = warns.get(userId) || [];
 
   if (userWarns.length === 0) {
     return interaction.reply({
