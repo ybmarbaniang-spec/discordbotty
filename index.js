@@ -45,7 +45,7 @@ const commands = [
     { name: 'reason', type: 3, required: false, description: 'Reason' }
   ]},
 
-  { name: 'warn', description: 'Warn a user', options: [
+  { name: 'warn2', description: 'Warn a user', options: [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'reason', type: 3, required: false, description: 'Reason' }
   ]},
@@ -159,7 +159,7 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     /* WARN + DM */
-    if (commandName === 'warn') {
+    if (commandName === 'warn2') {
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
 
