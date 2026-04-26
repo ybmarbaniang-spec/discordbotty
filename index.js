@@ -226,57 +226,120 @@ client.on('interactionCreate', async (interaction) => {
 
     /* SERVER INFO */
     if (commandName === 'serverinfo') {
-      const g = interaction.guild;
+  const g = interaction.guild;
 
-      return interaction.reply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: g.name,
-          fields: [
-            { name: 'Members', value: `${g.memberCount}` },
-            { name: 'Created', value: `<t:${Math.floor(g.createdTimestamp / 1000)}:R>` }
-          ]
-        }]
-      });
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: g.name,
+      thumbnail: {
+        url: g.iconURL({ dynamic: true, size: 1024 })
+      },
+      fields: [
+        { name: 'Server ID', value: g.id, inline: true },
+        { name: 'Owner ID', value: `${g.ownerId}`, inline: true },
+        { name: 'Members', value: `${g.memberCount}`, inline: true },
+
+        { name: 'Channels', value: `${g.channels.cache.size}`, inline: true },
+        { name: 'Roles', value: `${g.roles.cache.size}`, inline: true },
+        { name: 'Boost Level', value: `${g.premiumTier}`, inline: true },
+
+        { name: 'Created', value: `<t:${Math.floor(g.createdTimestamp / 1000)}:F>` }
+      ],
+      footer: {
+        text: 'Server Information'
+      }
+    }]
+  });
     }
 
     /* USER INFO */
     if (commandName === 'userinfo') {
-      const user = interaction.options.getUser('user');
-      const member = await interaction.guild.members.fetch(user.id);
+  const user = interaction.options.getUser('user');
+  const member = await interaction.guild.members.fetch(user.id);
 
-      return interaction.reply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: user.tag,
-          fields: [
-            { name: 'ID', value: user.id },
-            { name: 'Joined', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>` }
-          ]
-        }]
-      });
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: user.tag,
+      thumbnail: {
+        url: user.displayAvatarURL({ dynamic: true, size: 1024 })
+      },
+      fields: [
+        { name: 'User ID', value: user.id, inline: true },
+        { name: 'Server Nickname', value: member.nickname || 'None', inline: true },
+
+        { name: 'Account Created', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>` },
+        { name: 'Joined Server', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` },
+
+        { name: 'Roles', value: `${member.roles.cache.size - 1}`, inline: true },
+        { name: 'Highest Role', value: `${member.roles.highest.name}`, inline: true }
+      ],
+      footer: {
+        text: 'User Information'
+      }
+    }]
+  });
     }
 
     /* ABOUT */
     if (commandName === 'about') {
-      return interaction.reply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: 'About Bot',
-          description: 'Moderation & Utility Bot'
-        }]
-      });
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'About Bot',
+      description: 'A moderation and utility bot for Discord servers.',
+      fields: [
+        {
+          name: 'Features',
+          value: 'Moderation tools, warnings system, role management, server utilities'
+        },
+        {
+          name: 'Developer',
+          value: '<@1345041788804534343>'
+        },
+        {
+          name: 'Version',
+          value: '1.0.0'
+        }
+      ],
+      footer: {
+        text: 'Stable build'
+      }
+    }]
+  });
     }
 
     /* HELP */
     if (commandName === 'help') {
-      return interaction.reply({
-        embeds: [{
-          color: 0x2b2d31,
-          title: 'Help Menu',
-          description: 'Moderation + Utility Commands Available'
-        }]
-      });
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Help Menu',
+      description: 'List of available commands:',
+      fields: [
+        {
+          name: 'Moderation',
+          value: 'kick, ban, warn, warnings, clearwarnings, timeout, unban'
+        },
+        {
+          name: 'Utility',
+          value: 'serverinfo, userinfo, channelinfo, membercount, roles'
+        },
+        {
+          name: 'Admin',
+          value: 'purge, slowmode, lock, roleadd, roleremove'
+        },
+        {
+          name: 'Bot',
+          value: 'ping, about, help'
+        }
+      ],
+      footer: {
+        text: 'Use slash commands (/) to run commands'
+      }
+    }]
+  });
     }
 
     /* BASIC */
