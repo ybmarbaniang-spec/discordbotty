@@ -95,6 +95,28 @@ const commands = [
 
   { name: 'lock', description: 'Lock channel' },
 
+  {
+  name: 'unlock',
+  description: 'Unlock the current channel'
+  },
+
+  { name: 'unmute', description: 'Remove timeout from a user', options: [
+  { name: 'user', type: 6, required: true, description: 'User to unmute' }
+]},
+
+  { name: 'nickname', description: 'Change a user nickname', options: [
+  { name: 'user', type: 6, required: true, description: 'User' },
+  { name: 'name', type: 3, required: true, description: 'New nickname' }
+]},
+
+  { name: 'avatar', description: 'Get a user avatar', options: [
+  { name: 'user', type: 6, required: false, description: 'User' }
+]},
+
+  { name: 'servericon', description: 'View the server icon' },
+
+  { name: 'uptime', description: 'Check bot uptime' },
+
   { name: 'roleadd', description: 'Add role', options: [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'role', type: 8, required: true, description: 'Role' }
@@ -425,14 +447,257 @@ const userWarns = warns.get(userId) || [];
     }
 
     /* LOCK */
-    if (commandName === 'lock') {
-      await interaction.channel.permissionOverwrites.edit(
-        interaction.guild.roles.everyone,
-        { SendMessages: false }
-      );
+if (commandName === 'lock') {
+  try {
+    const everyone = interaction.guild.roles.everyone;
+    const current = interaction.channel.permissionOverwrites.cache.get(everyone.id);
 
-      return interaction.reply('Channel locked.');
+    // Check if already locked
+    if (current?.deny.has('SendMessages')) {
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: 'Channel Already Locked',
+          description: 'This channel is already locked. No changes were made.',
+          footer: { text: `Checked by ${interaction.user.tag}` },
+          timestamp: new Date()
+        }],
+        ephemeral: true
+      });
     }
+
+    await interaction.channel.permissionOverwrites.edit(everyone, {
+      SendMessages: false
+    });
+
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Channel Locked',
+        description: 'This channel has been locked. Members can no longer send messages.',
+        fields: [
+          { name: 'Moderator', value: interaction.user.tag, inline: true },
+          { name: 'Channel', value: `${interaction.channel}`, inline: true },
+          { name: 'Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>` }
+        ],
+        footer: { text: 'Moderation System' }
+      }]
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Error',
+        description: 'Unable to lock the channel. Please check my permissions and role hierarchy.',
+        footer: { text: `Attempted by ${interaction.user.tag}` }
+      }],
+      ephemeral: true
+    });
+  }
+}
+
+    /* UNLOCK */
+if (commandName === 'unlock') {
+  try {
+    const everyone = interaction.guild.roles.everyone;
+    const current = interaction.channel.permissionOverwrites.cache.get(everyone.id);
+
+    // Check if already unlocked
+    if (!current || !current.deny.has('SendMessages')) {
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: 'Channel Already Unlocked',
+          description: 'This channel is already unlocked. Members can send messages.',
+          footer: { text: `Checked by ${interaction.user.tag}` },
+          timestamp: new Date()
+        }],
+        ephemeral: true
+      });
+    }
+
+    await interaction.channel.permissionOverwrites.edit(everyone, {
+      SendMessages: true
+    });
+
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Channel Unlocked',
+        description: 'This channel has been successfully unlocked. Members may now send messages.',
+        fields: [
+          { name: 'Moderator', value: interaction.user.tag, inline: true },
+          { name: 'Channel', value: `${interaction.channel}`, inline: true },
+          { name: 'Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>` }
+        ],
+        footer: { text: 'Moderation System' }
+      }]
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Error',
+        description: 'Unable to unlock the channel. Please check my permissions and role hierarchy.',
+        footer: { text: `Attempted by ${interaction.user.tag}` }
+      }],
+      ephemeral: true
+    });
+  }
+}
+
+    /* UNMUTE */
+if (commandName === 'unmute') {
+  try {
+    const user = interaction.options.getUser('user');
+    const member = await interaction.guild.members.fetch(user.id);
+
+    if (!member.isCommunicationDisabled()) {
+      return interaction.reply({
+        embeds: [{
+          color: 0x2b2d31,
+          title: 'User Not Muted',
+          description: `${user.tag} is not currently timed out.`,
+          footer: { text: `Checked by ${interaction.user.tag}` },
+          timestamp: new Date()
+        }],
+        ephemeral: true
+      });
+    }
+
+    await member.timeout(null);
+
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Timeout Removed',
+        description: `${user.tag} has been successfully unmuted.`,
+        fields: [
+          { name: 'User', value: `${user.tag} (${user.id})` },
+          { name: 'Moderator', value: interaction.user.tag },
+          { name: 'Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>` }
+        ],
+        footer: { text: 'Moderation System' }
+      }]
+    });
+
+  } catch (err) {
+    console.error(err);
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Error',
+        description: 'Unable to remove timeout. Please check my permissions.',
+        footer: { text: `Attempted by ${interaction.user.tag}` }
+      }],
+      ephemeral: true
+    });
+  }
+}
+
+    /* NICKNAME */
+if (commandName === 'nickname') {
+  try {
+    const user = interaction.options.getUser('user');
+    const name = interaction.options.getString('name');
+    const member = await interaction.guild.members.fetch(user.id);
+
+    await member.setNickname(name);
+
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Nickname Updated',
+        description: `The nickname for ${user.tag} has been updated successfully.`,
+        fields: [
+          { name: 'New Nickname', value: name },
+          { name: 'Moderator', value: interaction.user.tag },
+          { name: 'Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>` }
+        ],
+        footer: { text: 'Moderation System' }
+      }]
+    });
+
+  } catch (err) {
+    console.error(err);
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Error',
+        description: 'Unable to change nickname. Check role hierarchy and permissions.',
+        footer: { text: `Attempted by ${interaction.user.tag}` }
+      }],
+      ephemeral: true
+    });
+  }
+}
+
+    /* AVATAR */
+if (commandName === 'avatar') {
+  const user = interaction.options.getUser('user') || interaction.user;
+
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: `${user.tag}'s Avatar`,
+      image: {
+        url: user.displayAvatarURL({ dynamic: true, size: 1024 })
+      },
+      footer: { text: `Requested by ${interaction.user.tag}` }
+    }]
+  });
+}
+
+    /* SERVER ICON */
+if (commandName === 'servericon') {
+  const icon = interaction.guild.iconURL({ dynamic: true, size: 1024 });
+
+  if (!icon) {
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'No Server Icon',
+        description: 'This server does not have an icon set.',
+        footer: { text: `Requested by ${interaction.user.tag}` }
+      }],
+      ephemeral: true
+    });
+  }
+
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: `${interaction.guild.name} Icon`,
+      image: { url: icon },
+      footer: { text: `Requested by ${interaction.user.tag}` }
+    }]
+  });
+}
+
+    /* UPTIME */
+if (commandName === 'uptime') {
+  const ms = client.uptime;
+
+  const seconds = Math.floor(ms / 1000) % 60;
+  const minutes = Math.floor(ms / (1000 * 60)) % 60;
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Bot Uptime',
+      description: `The bot has been online for ${hours} hours, ${minutes} minutes, and ${seconds} seconds.`,
+      footer: { text: `Requested by ${interaction.user.tag}` },
+      timestamp: new Date()
+    }]
+  });
+}
 
     /* ROLE ADD */
     if (commandName === 'roleadd') {
