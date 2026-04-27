@@ -58,6 +58,19 @@ const commands = [
     { name: 'user', type: 6, required: true, description: 'User' }
   ]},
 
+  {
+  name: 'removewarning',
+  description: 'Remove one warning from a user',
+  options: [
+    {
+      name: 'user',
+      type: 6,
+      description: 'User to remove warning from',
+      required: true
+    }
+  ]
+  },
+
   { name: 'purge', description: 'Delete messages', options: [
     { name: 'amount', type: 4, required: true, description: 'Amount' }
   ]},
@@ -402,6 +415,57 @@ const userWarns = warns.get(userId) || [];
 
   return interaction.reply({ embeds: [embed] });
     }
+
+    /* REMOVE WARNING */
+if (commandName === 'removewarning') {
+
+  if (!interaction.member.permissions.has('KickMembers') &&
+      !interaction.member.permissions.has('ModerateMembers')) {
+    return interaction.reply({
+      content: 'You need the **Kick Members** or **Moderate Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const user = interaction.options.getUser('user');
+
+  if (!user) {
+    return interaction.reply({
+      content: 'Please provide a user to remove a warning from.',
+      ephemeral: true
+    });
+  }
+
+  const userId = user.id;
+  const userWarns = warns.get(userId);
+
+  if (!userWarns || userWarns.length === 0) {
+    return interaction.reply({
+      content: `${user.tag} has no warnings to remove.`,
+      ephemeral: true
+    });
+  }
+
+  const removedWarn = userWarns.pop();
+  warns.set(userId, userWarns);
+
+  const embed = {
+    color: 0x2b2d31,
+    title: 'Warning Removed',
+    description: `One warning has been successfully removed from **${user.tag}**.`,
+    fields: [
+      { name: 'User', value: user.tag },
+      { name: 'Removed Reason', value: removedWarn.reason },
+      { name: 'Moderator', value: interaction.user.tag },
+      { name: 'Remaining Warnings', value: `${userWarns.length}` }
+    ],
+    timestamp: new Date()
+  };
+
+  await sendLog(interaction.guild, embed);
+
+  return interaction.reply({ embeds: [embed] });
+}
 
     /* PURGE */
     if (commandName === 'purge') {
