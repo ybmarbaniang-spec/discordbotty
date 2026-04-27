@@ -89,9 +89,23 @@ const commands = [
 
   { name: 'channelinfo', description: 'Channel info' },
 
-  { name: 'slowmode', description: 'Set slowmode', options: [
-    { name: 'seconds', type: 4, required: true, description: 'Seconds' }
-  ]},
+  {
+  name: 'slowmode',
+  description: 'Set slowmode for the current channel',
+  options: [
+    {
+      name: 'seconds',
+      type: 4,
+      required: true,
+      description: 'Slowmode delay in seconds'
+    }
+  ]
+},
+
+  {
+  name: 'slowmodeoff',
+  description: 'Disable slowmode in the current channel'
+},
 
   { name: 'lock', description: 'Lock channel' },
 
@@ -441,10 +455,73 @@ const userWarns = warns.get(userId) || [];
 
     /* SLOWMODE */
     if (commandName === 'slowmode') {
-      const seconds = interaction.options.getInteger('seconds');
-      await interaction.channel.setRateLimitPerUser(seconds);
-      return interaction.reply(`Slowmode set`);
+
+  if (!interaction.member.permissions.has('ManageChannels')) {
+    return interaction.reply({
+      content: 'You need **Manage Channels** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const seconds = interaction.options.getInteger('seconds');
+
+  if (seconds === null) {
+    return interaction.reply({
+      content: 'Please provide a slowmode value in seconds.',
+      ephemeral: true
+    });
+  }
+
+  if (seconds < 0 || seconds > 21600) {
+    return interaction.reply({
+      content: 'Slowmode must be between 0 and 21600 seconds.',
+      ephemeral: true
+    });
+  }
+
+  await interaction.channel.setRateLimitPerUser(seconds);
+
+  const status = seconds === 0
+    ? 'disabled'
+    : `set to ${seconds} second${seconds === 1 ? '' : 's'}`;
+
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Slowmode Updated',
+      description: `Slowmode has been ${status} in ${interaction.channel}.`,
+      footer: {
+        text: `Requested by ${interaction.user.tag}`
+      },
+      timestamp: new Date()
+    }]
+  });
     }
+
+    /* SLOWMODE OFF */
+if (commandName === 'slowmodeoff') {
+
+  if (!interaction.member.permissions.has('ManageChannels')) {
+    return interaction.reply({
+      content: 'You need **Manage Channels** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  await interaction.channel.setRateLimitPerUser(0);
+
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Slowmode Disabled',
+      description: `Slowmode has been turned off in ${interaction.channel}.`,
+      footer: {
+        text: `Requested by ${interaction.user.tag}`
+      },
+      timestamp: new Date()
+    }]
+  });
+}
 
     /* LOCK */
 if (commandName === 'lock') {
