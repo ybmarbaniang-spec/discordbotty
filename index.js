@@ -356,9 +356,51 @@ const userWarns = warns.get(userId) || [];
 
     /* CLEAR WARNINGS */
     if (commandName === 'clearwarnings') {
-      const user = interaction.options.getUser('user');
-      warns.set(user.id, []);
-      return interaction.reply(`${user.tag} warnings cleared.`);
+
+  if (!interaction.member.permissions.has('KickMembers') &&
+      !interaction.member.permissions.has('ModerateMembers')) {
+    return interaction.reply({
+      content: 'You need the **Kick Members** or **Moderate Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const user = interaction.options.getUser('user');
+
+  if (!user) {
+    return interaction.reply({
+      content: 'Please provide a user whose warnings you want to clear.',
+      ephemeral: true
+    });
+  }
+
+  const userId = user.id;
+  const existingWarns = warns.get(userId);
+
+  if (!existingWarns || existingWarns.length === 0) {
+    return interaction.reply({
+      content: `${user.tag} currently has no warnings to clear.`,
+      ephemeral: true
+    });
+  }
+
+  warns.set(userId, []);
+
+  const embed = {
+    color: 0x2b2d31,
+    title: 'Warnings Cleared',
+    description: `All warnings for **${user.tag}** have been successfully cleared.`,
+    fields: [
+      { name: 'User', value: user.tag },
+      { name: 'Moderator', value: interaction.user.tag },
+      { name: 'Previous Warning Count', value: `${existingWarns.length}` }
+    ],
+    timestamp: new Date()
+  };
+
+  await sendLog(interaction.guild, embed);
+
+  return interaction.reply({ embeds: [embed] });
     }
 
     /* PURGE */
@@ -430,9 +472,57 @@ const userWarns = warns.get(userId) || [];
     
     /* UNBAN */
     if (commandName === 'unban') {
-      const id = interaction.options.getString('user_id');
-      await interaction.guild.bans.remove(id);
-      return interaction.reply(`Unbanned ${id}`);
+
+  if (!interaction.member.permissions.has('BanMembers')) {
+    return interaction.reply({
+      content: 'You need the **Ban Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const id = interaction.options.getString('user_id');
+
+  if (!id) {
+    return interaction.reply({
+      content: 'Please provide a valid user ID to unban.',
+      ephemeral: true
+    });
+  }
+
+  try {
+    const bans = await interaction.guild.bans.fetch();
+    const bannedUser = bans.get(id);
+
+    if (!bannedUser) {
+      return interaction.reply({
+        content: 'This user is not currently banned.',
+        ephemeral: true
+      });
+    }
+
+    await interaction.guild.bans.remove(id);
+
+    const embed = {
+      color: 0x2b2d31,
+      title: 'User Unbanned',
+      description: `Successfully unbanned <@${id}>.`,
+      fields: [
+        { name: 'User ID', value: id },
+        { name: 'Moderator', value: interaction.user.tag }
+      ],
+      timestamp: new Date()
+    };
+
+    await sendLog(interaction.guild, embed);
+
+    return interaction.reply({ embeds: [embed] });
+
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to unban the user. Please check the ID and ensure it is valid.',
+      ephemeral: true
+    });
+  }
     }
 
     /* SERVER INFO */
