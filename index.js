@@ -168,44 +168,122 @@ client.on('interactionCreate', async (interaction) => {
 
     /* KICK */
     if (commandName === 'kickuser') {
-      const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason provided';
-      const member = await interaction.guild.members.fetch(user.id);
 
-      const embed = buildModEmbed('Kick', user.tag, reason, interaction.user.tag);
+  if (!interaction.member.permissions.has('KickMembers')) {
+    return interaction.reply({
+      content: 'You need the **Kick Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
 
-      await member.kick(reason);
-      await sendLog(interaction.guild, embed);
+  const user = interaction.options.getUser('user');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
 
-      return interaction.reply({ embeds: [embed] });
+  if (!user) {
+    return interaction.reply({
+      content: 'Please provide a user to kick.',
+      ephemeral: true
+    });
+  }
+
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+
+  if (!member) {
+    return interaction.reply({
+      content: 'User not found in this server.',
+      ephemeral: true
+    });
+  }
+
+  try {
+    const embed = buildModEmbed('Kick', user.tag, reason, interaction.user.tag);
+
+    await member.kick(reason);
+    await sendLog(interaction.guild, embed);
+
+    return interaction.reply({ embeds: [embed] });
+
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to kick the user. Check role hierarchy and permissions.',
+      ephemeral: true
+    });
+  }
     }
 
     /* BAN */
     if (commandName === 'banuser') {
-      const user = interaction.options.getUser('user');
-      const reason = interaction.options.getString('reason') || 'No reason provided';
-      const member = await interaction.guild.members.fetch(user.id);
 
-      const embed = buildModEmbed('Ban', user.tag, reason, interaction.user.tag);
+  if (!interaction.member.permissions.has('BanMembers')) {
+    return interaction.reply({
+      content: 'You need the **Ban Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
 
-      await member.ban({ reason });
-      await sendLog(interaction.guild, embed);
+  const user = interaction.options.getUser('user');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
 
-      return interaction.reply({ embeds: [embed] });
+  if (!user) {
+    return interaction.reply({
+      content: 'Please provide a user to ban.',
+      ephemeral: true
+    });
+  }
+
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+
+  if (!member) {
+    return interaction.reply({
+      content: 'User not found in this server.',
+      ephemeral: true
+    });
+  }
+
+  try {
+    const embed = buildModEmbed('Ban', user.tag, reason, interaction.user.tag);
+
+    await member.ban({ reason });
+    await sendLog(interaction.guild, embed);
+
+    return interaction.reply({ embeds: [embed] });
+
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to ban the user. Check role hierarchy and permissions.',
+      ephemeral: true
+    });
+  }
     }
 
     /* WARN + DM */
     if (commandName === 'warnuser') {
+
+  if (!interaction.member.permissions.has('KickMembers') &&
+      !interaction.member.permissions.has('ModerateMembers')) {
+    return interaction.reply({
+      content: 'You need the **Kick Members** or **Moderate Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
   const user = interaction.options.getUser('user');
   const reason = interaction.options.getString('reason') || 'No reason provided';
 
+  if (!user) {
+    return interaction.reply({
+      content: 'Please provide a user to warn.',
+      ephemeral: true
+    });
+  }
+
   const userId = user.id;
 
-if (!warns.has(userId)) {
-  warns.set(userId, []);
-}
+  if (!warns.has(userId)) {
+    warns.set(userId, []);
+  }
 
-const userWarns = warns.get(userId);
+  const userWarns = warns.get(userId);
 
   const warnEntry = {
     reason,
@@ -214,7 +292,7 @@ const userWarns = warns.get(userId);
   };
 
   userWarns.push(warnEntry);
-  warns.set(user.id, userWarns);
+  warns.set(userId, userWarns);
 
   const embed = {
     color: 0x2b2d31,
