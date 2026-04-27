@@ -685,7 +685,7 @@ if (commandName === 'removewarning') {
       fields: [
         {
           name: 'Moderation',
-          value: 'kick, ban, warn, warnings, clearwarnings, timeout, unban'
+          value: 'kick, ban, warn, warnings, clearwarnings, removewarnings, timeout, unban'
         },
         {
           name: 'Utility',
@@ -693,7 +693,7 @@ if (commandName === 'removewarning') {
         },
         {
           name: 'Admin',
-          value: 'purge, slowmode, lock, roleadd, roleremove'
+          value: 'purge, slowmode, slowmodeoff, lock, roleadd, roleremove'
         },
         {
           name: 'Bot',
