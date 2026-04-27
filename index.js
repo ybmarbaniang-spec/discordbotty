@@ -295,7 +295,7 @@ const userWarns = warns.get(userId) || [];
 
   if (!interaction.member.permissions.has('ModerateMembers')) {
     return interaction.reply({
-      content: 'You need **Moderate Members** permission to use this command.',
+      content: 'You need the **Moderate Members** permission to use this command.',
       ephemeral: true
     });
   }
