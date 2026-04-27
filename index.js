@@ -292,18 +292,64 @@ const userWarns = warns.get(userId) || [];
 
     /* TIMEOUT */
     if (commandName === 'timeout') {
-      const user = interaction.options.getUser('user');
-      const time = interaction.options.getInteger('time');
-      const member = await interaction.guild.members.fetch(user.id);
 
-      const embed = buildModEmbed('Timeout', user.tag, `${time}s`, interaction.user.tag);
+  if (!interaction.member.permissions.has('ModerateMembers')) {
+    return interaction.reply({
+      content: 'You need **Moderate Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
 
-      await member.timeout(time * 1000);
-      await sendLog(interaction.guild, embed);
+  const user = interaction.options.getUser('user');
+  const time = interaction.options.getInteger('time');
 
-      return interaction.reply({ embeds: [embed] });
+  if (!user || !time) {
+    return interaction.reply({
+      content: 'Please provide a user and timeout duration.',
+      ephemeral: true
+    });
+  }
+
+  const member = await interaction.guild.members.fetch(user.id);
+
+  if (!member) {
+    return interaction.reply({
+      content: 'User not found in this server.',
+      ephemeral: true
+    });
+  }
+
+  const ms = time * 1000;
+
+  if (ms > 28 * 24 * 60 * 60 * 1000) {
+    return interaction.reply({
+      content: 'Timeout cannot exceed 28 days.',
+      ephemeral: true
+    });
+  }
+
+  try {
+    await member.timeout(ms);
+
+    const embed = buildModEmbed(
+      'Timeout',
+      user.tag,
+      `${time}s`,
+      interaction.user.tag
+    );
+
+    await sendLog(interaction.guild, embed);
+
+    return interaction.reply({ embeds: [embed] });
+
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to apply timeout. Check role hierarchy and permissions.',
+      ephemeral: true
+    });
+  }
     }
-
+    
     /* UNBAN */
     if (commandName === 'unban') {
       const id = interaction.options.getString('user_id');
