@@ -962,6 +962,68 @@ if (commandName === 'nickname') {
     const user = interaction.options.getUser('user');
     const name = interaction.options.getString('name');
     const member = await interaction.guild.members.fetch(user.id);
+    const executor = interaction.member;
+    const botMember = interaction.guild.members.me;
+
+    // Prevent non-admins from changing others' nicknames
+    const isSelf = user.id === interaction.user.id;
+    const executorIsAdmin = executor.permissions.has('Administrator');
+    const executorIsMod = executor.permissions.has('ManageNicknames');
+
+    if (!isSelf && !executorIsAdmin && !executorIsMod) {
+      return interaction.reply({
+        embeds: [{
+          color: 0xe74c3c,
+          title: 'Permission Denied',
+          description: 'You do not have permission to change others\' nicknames.',
+          footer: { text: `Attempted by ${interaction.user.tag}` }
+        }],
+        ephemeral: true
+      });
+    }
+
+    // Role hierarchy: executor must be higher than the target
+    if (!isSelf && executor.roles.highest.position <= member.roles.highest.position) {
+      return interaction.reply({
+        embeds: [{
+          color: 0xe74c3c,
+          title: 'Hierarchy Error',
+          description: `You cannot change the nickname of **${user.tag}** as they have an equal or higher role than you.`,
+          fields: [
+            { name: 'Your Highest Role', value: `${executor.roles.highest}`, inline: true },
+            { name: 'Their Highest Role', value: `${member.roles.highest}`, inline: true }
+          ],
+          footer: { text: `Attempted by ${interaction.user.tag}` }
+        }],
+        ephemeral: true
+      });
+    }
+
+    // Bot hierarchy: bot must be higher than the target
+    if (botMember.roles.highest.position <= member.roles.highest.position) {
+      return interaction.reply({
+        embeds: [{
+          color: 0xe74c3c,
+          title: 'Bot Hierarchy Error',
+          description: `I cannot change the nickname of **${user.tag}** as they have an equal or higher role than me.`,
+          footer: { text: 'Moderation System' }
+        }],
+        ephemeral: true
+      });
+    }
+
+    // Cannot target the server owner
+    if (member.id === interaction.guild.ownerId) {
+      return interaction.reply({
+        embeds: [{
+          color: 0xe74c3c,
+          title: 'Permission Denied',
+          description: 'You cannot change the nickname of the server owner.',
+          footer: { text: `Attempted by ${interaction.user.tag}` }
+        }],
+        ephemeral: true
+      });
+    }
 
     await member.setNickname(name);
 
@@ -971,7 +1033,7 @@ if (commandName === 'nickname') {
         title: 'Nickname Updated',
         description: `The nickname for ${user.tag} has been updated successfully.`,
         fields: [
-          { name: 'New Nickname', value: name },
+          { name: 'New Nickname', value: name || '*Nickname Cleared*' },
           { name: 'Moderator', value: interaction.user.tag },
           { name: 'Time', value: `<t:${Math.floor(Date.now() / 1000)}:F>` }
         ],
@@ -983,7 +1045,7 @@ if (commandName === 'nickname') {
     console.error(err);
     return interaction.reply({
       embeds: [{
-        color: 0x2b2d31,
+        color: 0xe74c3c,
         title: 'Error',
         description: 'Unable to change nickname. Check role hierarchy and permissions.',
         footer: { text: `Attempted by ${interaction.user.tag}` }
