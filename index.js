@@ -127,7 +127,7 @@ const commands = [
   description: 'Unlock the current channel'
   },
 
-  { name: 'unmute', description: 'Remove timeout from a user', options: [
+  { name: 'untimeout', description: 'Remove timeout from a user', options: [
   { name: 'user', type: 6, required: true, description: 'User to unmute' }
 ]},
 
@@ -908,7 +908,7 @@ if (commandName === 'unlock') {
 }
 
     /* UNMUTE */
-if (commandName === 'unmute') {
+if (commandName === 'untimeout') {
   try {
     const user = interaction.options.getUser('user');
     const member = await interaction.guild.members.fetch(user.id);
