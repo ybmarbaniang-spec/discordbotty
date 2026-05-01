@@ -166,10 +166,15 @@ const commands = [
   { name: 'reason', type: 3, required: false, description: 'Reason' }
 ]},
 
-  { name: 'embedsay', description: 'Make the bot send a custom embed', options: [
-  { name: 'channel', type: 7, required: true, description: 'Channel to send the embed in' },
-  { name: 'title', type: 3, required: true, description: 'Title of the embed' },
-  { name: 'message', type: 3, required: true, description: 'Message content of the embed' }
+  { 
+  name: 'embedsay', 
+  description: 'Make the bot send a custom embed', 
+  options: [
+    { name: 'channel', type: 7, required: true, description: 'Channel to send the embed in' },
+    { name: 'title', type: 3, required: true, description: 'Title of the embed' },
+    { name: 'message', type: 3, required: true, description: 'Message content of the embed' }
+  ]
+}
 ];
 
 /* ---------------- READY ---------------- */
