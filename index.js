@@ -150,7 +150,28 @@ const commands = [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'role', type: 8, required: true, description: 'Role' }
   ]}
-];
+];,
+
+  { name: 'announce', description: 'Send an announcement to a channel', options: [
+  { name: 'channel', type: 7, required: true, description: 'Channel to announce in' },
+  { name: 'message', type: 3, required: true, description: 'Announcement message' }
+]},
+
+  { name: 'massban', description: 'Ban multiple users at once', options: [
+  { name: 'users', type: 3, required: true, description: 'User IDs separated by spaces' },
+  { name: 'reason', type: 3, required: false, description: 'Reason' }
+]},
+
+  { name: 'softban', description: 'Ban and unban a user to delete their messages', options: [
+  { name: 'user', type: 6, required: true, description: 'User' },
+  { name: 'reason', type: 3, required: false, description: 'Reason' }
+]},
+
+  { name: 'embedsay', description: 'Make the bot send a custom embed', options: [
+  { name: 'channel', type: 7, required: true, description: 'Channel to send the embed in' },
+  { name: 'title', type: 3, required: true, description: 'Title of the embed' },
+  { name: 'message', type: 3, required: true, description: 'Message content of the embed' }
+]}
 
 /* ---------------- READY ---------------- */
 
@@ -1199,6 +1220,134 @@ if (commandName === 'uptime') {
       ephemeral: true
     });
   }
+    }
+
+    if (commandName === 'announce') {
+  if (!interaction.member.permissions.has('ManageMessages')) {
+    return interaction.reply({
+      content: 'You need the **Manage Messages** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const channel = interaction.options.getChannel('channel');
+  const message = interaction.options.getString('message');
+
+  await channel.send({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Announcement',
+      description: message,
+      footer: { text: `Announced by ${interaction.user.tag}` },
+      timestamp: new Date()
+    }]
+  });
+
+  return interaction.reply({
+    content: `Announcement sent to ${channel}.`,
+    ephemeral: true
+  });
+    }
+
+    if (commandName === 'massban') {
+  if (!interaction.member.permissions.has('BanMembers')) {
+    return interaction.reply({
+      content: 'You need the **Ban Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const ids = interaction.options.getString('users').split(' ');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
+  const banned = [];
+  const failed = [];
+
+  for (const id of ids) {
+    try {
+      await interaction.guild.members.ban(id, { reason });
+      banned.push(id);
+    } catch {
+      failed.push(id);
+    }
+  }
+
+  return interaction.reply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Massban',
+      fields: [
+        { name: 'Banned', value: banned.length ? banned.map(id => `<@${id}>`).join(', ') : 'None' },
+        { name: 'Failed', value: failed.length ? failed.map(id => `<@${id}>`).join(', ') : 'None' },
+        { name: 'Reason', value: reason },
+        { name: 'Moderator', value: `${interaction.user}` }
+      ],
+      timestamp: new Date()
+    }],
+    ephemeral: true
+  });
+    }
+
+    if (commandName === 'softban') {
+  if (!interaction.member.permissions.has('BanMembers')) {
+    return interaction.reply({
+      content: 'You need the **Ban Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const user = interaction.options.getUser('user');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+
+  if (!member) {
+    return interaction.reply({
+      content: 'User not found in this server.',
+      ephemeral: true
+    });
+  }
+
+  try {
+    await member.ban({ deleteMessageSeconds: 604800, reason });
+    await interaction.guild.bans.remove(user.id);
+
+    const embed = buildModEmbed('Softban', user.tag, reason, interaction.user.tag);
+    await sendLog(interaction.guild, embed);
+
+    return interaction.reply({ embeds: [embed] });
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to softban the user. Check role hierarchy and permissions.',
+      ephemeral: true
+    });
+  }
+    }
+
+    if (commandName === 'embedsay') {
+  if (!interaction.member.permissions.has('ManageMessages')) {
+    return interaction.reply({
+      content: 'You need the **Manage Messages** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const channel = interaction.options.getChannel('channel');
+  const title = interaction.options.getString('title');
+  const message = interaction.options.getString('message');
+
+  await channel.send({
+    embeds: [{
+      color: 0x2b2d31,
+      title: title,
+      description: message,
+      footer: { text: `Sent by ${interaction.user.tag}` },
+      timestamp: new Date()
+    }]
+  });
+
+  return interaction.reply({
+    content: `Embed sent to ${channel}.`,
+    ephemeral: true
+  });
     }
 
   } catch (err) {
