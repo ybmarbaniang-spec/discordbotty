@@ -170,7 +170,7 @@ const commands = [
   { name: 'channel', type: 7, required: true, description: 'Channel to send the embed in' },
   { name: 'title', type: 3, required: true, description: 'Title of the embed' },
   { name: 'message', type: 3, required: true, description: 'Message content of the embed' }
-];
+]},
 
 /* ---------------- READY ---------------- */
 
