@@ -60,25 +60,22 @@ const commands = [
 
   {
   name: 'removewarning',
-  description: 'Remove one warning from a user',
+  description: 'Remove a specific warning from a user by index',
   options: [
-    {
-      name: 'user',
-      type: 6,
-      description: 'User to remove warning from',
-      required: true
-    }
+    { name: 'user', type: 6, description: 'User to remove warning from', required: true },
+    { name: 'index', type: 4, description: 'Warning number to remove (use /warnings to see numbers)', required: true }
   ]
-  },
+},
 
   { name: 'purge', description: 'Delete messages', options: [
     { name: 'amount', type: 4, required: true, description: 'Amount' }
   ]},
 
   { name: 'timeout', description: 'Timeout user', options: [
-    { name: 'user', type: 6, required: true, description: 'User' },
-    { name: 'time', type: 4, required: true, description: 'Seconds' }
-  ]},
+  { name: 'user', type: 6, required: true, description: 'User' },
+  { name: 'time', type: 4, required: true, description: 'Seconds' },
+  { name: 'reason', type: 3, required: false, description: 'Reason' }
+]},
 
   { name: 'unban', description: 'Unban user', options: [
     { name: 'user_id', type: 3, required: true, description: 'User ID' }
@@ -337,9 +334,17 @@ client.on('interactionCreate', async (interaction) => {
 
     /* WARNINGS */
     if (commandName === 'warnings') {
+  if (!interaction.member.permissions.has('KickMembers') &&
+      !interaction.member.permissions.has('ModerateMembers')) {
+    return interaction.reply({
+      content: 'You need the **Kick Members** or **Moderate Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
   const user = interaction.options.getUser('user');
   const userId = user.id;
-const userWarns = warns.get(userId) || [];
+  const userWarns = warns.get(userId) || [];
 
   if (userWarns.length === 0) {
     return interaction.reply({
@@ -359,9 +364,7 @@ const userWarns = warns.get(userId) || [];
         `Moderator: ${w.moderator}.\n` +
         `Issued on: ${w.time}.`
     })),
-    footer: {
-      text: `Total warnings: ${userWarns.length}.`
-    }
+    footer: { text: `Total warnings: ${userWarns.length}.` }
   };
 
   return interaction.reply({ embeds: [embed] });
@@ -418,7 +421,6 @@ const userWarns = warns.get(userId) || [];
 
     /* REMOVE WARNING */
 if (commandName === 'removewarning') {
-
   if (!interaction.member.permissions.has('KickMembers') &&
       !interaction.member.permissions.has('ModerateMembers')) {
     return interaction.reply({
@@ -428,31 +430,33 @@ if (commandName === 'removewarning') {
   }
 
   const user = interaction.options.getUser('user');
+  const index = interaction.options.getInteger('index');
 
   if (!user) {
-    return interaction.reply({
-      content: 'Please provide a user to remove a warning from.',
-      ephemeral: true
-    });
+    return interaction.reply({ content: 'Please provide a user to remove a warning from.', ephemeral: true });
   }
 
   const userId = user.id;
   const userWarns = warns.get(userId);
 
   if (!userWarns || userWarns.length === 0) {
+    return interaction.reply({ content: `${user.tag} has no warnings to remove.`, ephemeral: true });
+  }
+
+  if (index < 1 || index > userWarns.length) {
     return interaction.reply({
-      content: `${user.tag} has no warnings to remove.`,
+      content: `Invalid warning number. ${user.tag} has ${userWarns.length} warning(s). Use \`/warnings\` to see the list.`,
       ephemeral: true
     });
   }
 
-  const removedWarn = userWarns.pop();
+  const removedWarn = userWarns.splice(index - 1, 1)[0];
   warns.set(userId, userWarns);
 
   const embed = {
     color: 0x2b2d31,
     title: 'Warning Removed',
-    description: `One warning has been successfully removed from **${user.tag}**.`,
+    description: `Warning #${index} has been removed from **${user.tag}**.`,
     fields: [
       { name: 'User', value: user.tag },
       { name: 'Removed Reason', value: removedWarn.reason },
@@ -463,20 +467,30 @@ if (commandName === 'removewarning') {
   };
 
   await sendLog(interaction.guild, embed);
-
   return interaction.reply({ embeds: [embed] });
 }
 
     /* PURGE */
     if (commandName === 'purge') {
-      const amount = interaction.options.getInteger('amount');
-      await interaction.channel.bulkDelete(amount);
-      return interaction.reply(`Deleted ${amount} messages.`);
+  if (!interaction.member.permissions.has('ManageMessages')) {
+    return interaction.reply({
+      content: 'You need the **Manage Messages** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  const amount = interaction.options.getInteger('amount');
+
+  if (amount < 1 || amount > 100) {
+    return interaction.reply({ content: 'Amount must be between 1 and 100.', ephemeral: true });
+  }
+
+  await interaction.channel.bulkDelete(amount, true);
+  return interaction.reply({ content: `Deleted ${amount} messages.`, ephemeral: true });
     }
 
     /* TIMEOUT */
     if (commandName === 'timeout') {
-
   if (!interaction.member.permissions.has('ModerateMembers')) {
     return interaction.reply({
       content: 'You need the **Moderate Members** permission to use this command.',
@@ -486,46 +500,41 @@ if (commandName === 'removewarning') {
 
   const user = interaction.options.getUser('user');
   const time = interaction.options.getInteger('time');
+  const reason = interaction.options.getString('reason') || 'No reason provided';
 
   if (!user || !time) {
-    return interaction.reply({
-      content: 'Please provide a user and timeout duration.',
-      ephemeral: true
-    });
+    return interaction.reply({ content: 'Please provide a user and timeout duration.', ephemeral: true });
   }
 
   const member = await interaction.guild.members.fetch(user.id);
 
   if (!member) {
-    return interaction.reply({
-      content: 'User not found in this server.',
-      ephemeral: true
-    });
+    return interaction.reply({ content: 'User not found in this server.', ephemeral: true });
   }
 
   const ms = time * 1000;
 
   if (ms > 28 * 24 * 60 * 60 * 1000) {
-    return interaction.reply({
-      content: 'Timeout cannot exceed 28 days.',
-      ephemeral: true
-    });
+    return interaction.reply({ content: 'Timeout cannot exceed 28 days.', ephemeral: true });
   }
 
   try {
-    await member.timeout(ms);
+    await member.timeout(ms, reason);
 
-    const embed = buildModEmbed(
-      'Timeout',
-      user.tag,
-      `${time}s`,
-      interaction.user.tag
-    );
+    const embed = {
+      color: 0x2b2d31,
+      title: 'Moderation - Timeout',
+      fields: [
+        { name: 'User', value: user.tag },
+        { name: 'Duration', value: `${time} second(s)` },
+        { name: 'Reason', value: reason },
+        { name: 'Moderator', value: interaction.user.tag },
+        { name: 'Time', value: new Date().toLocaleString() }
+      ]
+    };
 
     await sendLog(interaction.guild, embed);
-
     return interaction.reply({ embeds: [embed] });
-
   } catch (err) {
     return interaction.reply({
       content: 'Failed to apply timeout. Check role hierarchy and permissions.',
@@ -856,11 +865,17 @@ if (commandName === 'lock') {
 
     /* UNLOCK */
 if (commandName === 'unlock') {
+  if (!interaction.member.permissions.has('ManageChannels')) {
+    return interaction.reply({
+      content: 'You need **Manage Channels** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
   try {
     const everyone = interaction.guild.roles.everyone;
     const current = interaction.channel.permissionOverwrites.cache.get(everyone.id);
 
-    // Check if already unlocked
     if (!current || !current.deny.has('SendMessages')) {
       return interaction.reply({
         embeds: [{
@@ -874,9 +889,7 @@ if (commandName === 'unlock') {
       });
     }
 
-    await interaction.channel.permissionOverwrites.edit(everyone, {
-      SendMessages: true
-    });
+    await interaction.channel.permissionOverwrites.edit(everyone, { SendMessages: null });
 
     return interaction.reply({
       embeds: [{
@@ -891,10 +904,8 @@ if (commandName === 'unlock') {
         footer: { text: 'Moderation System' }
       }]
     });
-
   } catch (err) {
     console.error(err);
-
     return interaction.reply({
       embeds: [{
         color: 0x2b2d31,
@@ -909,6 +920,13 @@ if (commandName === 'unlock') {
 
     /* UNMUTE */
 if (commandName === 'untimeout') {
+  if (!interaction.member.permissions.has('ModerateMembers')) {
+    return interaction.reply({
+      content: 'You need the **Moderate Members** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
   try {
     const user = interaction.options.getUser('user');
     const member = await interaction.guild.members.fetch(user.id);
@@ -941,7 +959,6 @@ if (commandName === 'untimeout') {
         footer: { text: 'Moderation System' }
       }]
     });
-
   } catch (err) {
     console.error(err);
     return interaction.reply({
@@ -1118,22 +1135,70 @@ if (commandName === 'uptime') {
 
     /* ROLE ADD */
     if (commandName === 'roleadd') {
-      const user = interaction.options.getUser('user');
-      const role = interaction.options.getRole('role');
-      const member = await interaction.guild.members.fetch(user.id);
+  if (!interaction.member.permissions.has('ManageRoles')) {
+    return interaction.reply({
+      content: 'You need the **Manage Roles** permission to use this command.',
+      ephemeral: true
+    });
+  }
 
-      await member.roles.add(role);
-      return interaction.reply('Role added.');
+  const user = interaction.options.getUser('user');
+  const role = interaction.options.getRole('role');
+  const member = await interaction.guild.members.fetch(user.id);
+
+  try {
+    await member.roles.add(role);
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Role Added',
+        fields: [
+          { name: 'User', value: user.tag, inline: true },
+          { name: 'Role', value: role.name, inline: true },
+          { name: 'Moderator', value: interaction.user.tag }
+        ]
+      }]
+    });
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to add the role. Check role hierarchy and permissions.',
+      ephemeral: true
+    });
+  }
     }
 
     /* ROLE REMOVE */
     if (commandName === 'roleremove') {
-      const user = interaction.options.getUser('user');
-      const role = interaction.options.getRole('role');
-      const member = await interaction.guild.members.fetch(user.id);
+  if (!interaction.member.permissions.has('ManageRoles')) {
+    return interaction.reply({
+      content: 'You need the **Manage Roles** permission to use this command.',
+      ephemeral: true
+    });
+  }
 
-      await member.roles.remove(role);
-      return interaction.reply('Role removed.');
+  const user = interaction.options.getUser('user');
+  const role = interaction.options.getRole('role');
+  const member = await interaction.guild.members.fetch(user.id);
+
+  try {
+    await member.roles.remove(role);
+    return interaction.reply({
+      embeds: [{
+        color: 0x2b2d31,
+        title: 'Role Removed',
+        fields: [
+          { name: 'User', value: user.tag, inline: true },
+          { name: 'Role', value: role.name, inline: true },
+          { name: 'Moderator', value: interaction.user.tag }
+        ]
+      }]
+    });
+  } catch (err) {
+    return interaction.reply({
+      content: 'Failed to remove the role. Check role hierarchy and permissions.',
+      ephemeral: true
+    });
+  }
     }
 
   } catch (err) {
