@@ -149,8 +149,7 @@ const commands = [
   { name: 'roleremove', description: 'Remove role', options: [
     { name: 'user', type: 6, required: true, description: 'User' },
     { name: 'role', type: 8, required: true, description: 'Role' }
-  ]}
-]},
+  ]},
 
   { name: 'announce', description: 'Send an announcement to a channel', options: [
   { name: 'channel', type: 7, required: true, description: 'Channel to announce in' },
