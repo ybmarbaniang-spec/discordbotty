@@ -1153,9 +1153,9 @@ if (commandName === 'uptime') {
         color: 0x2b2d31,
         title: 'Role Added',
         fields: [
-          { name: 'User', value: user.tag, inline: true },
-          { name: 'Role', value: role.name, inline: true },
-          { name: 'Moderator', value: interaction.user.tag }
+          { name: 'User', value: `${user}`, inline: true },
+          { name: 'Role', value: `${role}`, inline: true },
+          { name: 'Moderator', value: `${interaction.user}` }
         ]
       }]
     });
@@ -1187,9 +1187,9 @@ if (commandName === 'uptime') {
         color: 0x2b2d31,
         title: 'Role Removed',
         fields: [
-          { name: 'User', value: user.tag, inline: true },
-          { name: 'Role', value: role.name, inline: true },
-          { name: 'Moderator', value: interaction.user.tag }
+          { name: 'User', value: `${user}`, inline: true },
+          { name: 'Role', value: `${role}`, inline: true },
+          { name: 'Moderator', value: `${interaction.user}` }
         ]
       }]
     });
