@@ -185,7 +185,7 @@ client.once('ready', async () => {
   );
 
   console.log('Commands registered');
-];
+});
 
 /* ---------------- COMMAND HANDLER ---------------- */
 
