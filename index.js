@@ -329,6 +329,22 @@ client.on('interactionCreate', async (interaction) => {
     });
   }
 
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+
+  if (!member) {
+    return interaction.reply({
+      content: 'User not found in this server.',
+      ephemeral: true
+    });
+  }
+
+  if (member.roles.highest.position >= interaction.member.roles.highest.position) {
+    return interaction.reply({
+      content: 'You cannot warn this user because they have a higher or equal role.',
+      ephemeral: true
+    });
+  }
+
   const userId = user.id;
 
   if (!warns.has(userId)) {
@@ -347,16 +363,16 @@ client.on('interactionCreate', async (interaction) => {
   warns.set(userId, userWarns);
 
   const embed = {
-  color: 0x2b2d31,
-  title: 'User Warned',
-  fields: [
-    { name: 'User', value: `${user}` },
-    { name: 'Reason', value: reason },
-    { name: 'Moderator', value: `${interaction.user}` },
-    { name: 'Time', value: warnEntry.time },
-    { name: 'Total Warnings', value: `${userWarns.length}` }
-  ]
-};
+    color: 0x2b2d31,
+    title: 'User Warned',
+    fields: [
+      { name: 'User', value: `${user}` },
+      { name: 'Reason', value: reason },
+      { name: 'Moderator', value: `${interaction.user}` },
+      { name: 'Time', value: warnEntry.time },
+      { name: 'Total Warnings', value: `${userWarns.length}` }
+    ]
+  };
 
   let dmSent = true;
 
