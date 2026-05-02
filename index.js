@@ -231,7 +231,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   try {
-    const embed = buildModEmbed('Kick', user.tag, reason, interaction.user.tag);
+    const embed = buildModEmbed('Kick', `${user}`, reason, `${interaction.user}`);
 
     await member.kick(reason);
     await sendLog(interaction.guild, embed);
@@ -276,7 +276,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   try {
-    const embed = buildModEmbed('Ban', user.tag, reason, interaction.user.tag);
+    const embed = buildModEmbed('Ban', `${user}`, reason, `${interaction.user}`);
 
     await member.ban({ reason });
     await sendLog(interaction.guild, embed);
