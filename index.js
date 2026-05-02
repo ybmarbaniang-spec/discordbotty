@@ -330,16 +330,16 @@ client.on('interactionCreate', async (interaction) => {
   warns.set(userId, userWarns);
 
   const embed = {
-    color: 0x2b2d31,
-    title: 'User Warned',
-    fields: [
-      { name: 'User', value: user.tag },
-      { name: 'Reason', value: reason },
-      { name: 'Moderator', value: interaction.user.tag },
-      { name: 'Time', value: warnEntry.time },
-      { name: 'Total Warnings', value: `${userWarns.length}` }
-    ]
-  };
+  color: 0x2b2d31,
+  title: 'User Warned',
+  fields: [
+    { name: 'User', value: `${user}` },
+    { name: 'Reason', value: reason },
+    { name: 'Moderator', value: `${interaction.user}` },
+    { name: 'Time', value: warnEntry.time },
+    { name: 'Total Warnings', value: `${userWarns.length}` }
+  ]
+};
 
   let dmSent = true;
 
