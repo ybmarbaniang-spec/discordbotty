@@ -176,6 +176,14 @@ const commands = [
   },
 
   { 
+    name: 'roleinfo', 
+    description: 'Get information about a role', 
+    options: [
+      { name: 'role', type: 8, required: true, description: 'Role' }
+    ] 
+  },
+  
+  { 
   name: 'embedsay', 
   description: 'Make the bot send a custom embed', 
   options: [
@@ -1438,6 +1446,28 @@ if (commandName === 'unlockdown') {
     }]
   });
 }
+
+    if (commandName === 'roleinfo') {
+  const role = interaction.options.getRole('role');
+
+  return interaction.reply({
+    embeds: [{
+      color: role.color || 0x2b2d31,
+      title: 'Role Info',
+      fields: [
+        { name: 'Name', value: `${role}`, inline: true },
+        { name: 'ID', value: role.id, inline: true },
+        { name: 'Color', value: role.hexColor, inline: true },
+        { name: 'Members', value: `${role.members.size}`, inline: true },
+        { name: 'Mentionable', value: role.mentionable ? 'Yes' : 'No', inline: true },
+        { name: 'Hoisted', value: role.hoist ? 'Yes' : 'No', inline: true },
+        { name: 'Created', value: `<t:${Math.floor(role.createdTimestamp / 1000)}:F>` }
+      ],
+      footer: { text: `Requested by ${interaction.user.tag}` },
+      timestamp: new Date()
+    }]
+  });
+    }
 
   } catch (err) {
     console.error(err);
