@@ -1450,6 +1450,8 @@ if (commandName === 'unlockdown') {
     if (commandName === 'roleinfo') {
   const role = interaction.options.getRole('role');
 
+  await interaction.guild.members.fetch();
+
   return interaction.reply({
     embeds: [{
       color: role.color || 0x2b2d31,
