@@ -449,8 +449,8 @@ client.on('interactionCreate', async (interaction) => {
     title: 'Warnings Cleared',
     description: `All warnings for **${user.tag}** have been successfully cleared.`,
     fields: [
-      { name: 'User', value: user.tag },
-      { name: 'Moderator', value: interaction.user.tag },
+      { name: 'User', value: `${user}` },
+      { name: 'Moderator', value: `${interaction.user}` },
       { name: 'Previous Warning Count', value: `${existingWarns.length}` }
     ],
     timestamp: new Date()
@@ -500,9 +500,9 @@ if (commandName === 'removewarning') {
     title: 'Warning Removed',
     description: `Warning #${index} has been removed from **${user.tag}**.`,
     fields: [
-      { name: 'User', value: user.tag },
+      { name: 'User', value: `${user}` },
       { name: 'Removed Reason', value: removedWarn.reason },
-      { name: 'Moderator', value: interaction.user.tag },
+      { name: 'Moderator', value: `${interaction.user}` },
       { name: 'Remaining Warnings', value: `${userWarns.length}` }
     ],
     timestamp: new Date()
