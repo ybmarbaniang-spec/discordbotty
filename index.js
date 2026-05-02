@@ -166,6 +166,15 @@ const commands = [
   { name: 'reason', type: 3, required: false, description: 'Reason' }
 ]},
 
+    { 
+    name: 'lockdown', 
+    description: 'Lock all channels in the server' 
+  },
+  { 
+    name: 'unlockdown', 
+    description: 'Unlock all channels in the server' 
+  },
+
   { 
   name: 'embedsay', 
   description: 'Make the bot send a custom embed', 
@@ -1353,6 +1362,82 @@ if (commandName === 'uptime') {
     ephemeral: true
   });
     }
+
+    if (commandName === 'lockdown') {
+  if (!interaction.member.permissions.has('Administrator')) {
+    return interaction.reply({
+      content: 'You need the **Administrator** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  await interaction.deferReply();
+
+  const everyone = interaction.guild.roles.everyone;
+  const channels = interaction.guild.channels.cache.filter(c => c.type === 0);
+  const failed = [];
+
+  for (const [, channel] of channels) {
+    try {
+      await channel.permissionOverwrites.edit(everyone, { SendMessages: false });
+    } catch {
+      failed.push(channel.name);
+    }
+  }
+
+  return interaction.editReply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Server Lockdown',
+      description: 'All channels have been locked. Members can no longer send messages.',
+      fields: [
+        { name: 'Moderator', value: `${interaction.user}` },
+        { name: 'Channels Locked', value: `${channels.size - failed.length}` },
+        failed.length ? { name: 'Failed', value: failed.join(', ') } : { name: 'Failed', value: 'None' }
+      ],
+      timestamp: new Date(),
+      footer: { text: 'Moderation System' }
+    }]
+  });
+}
+
+if (commandName === 'unlockdown') {
+  if (!interaction.member.permissions.has('Administrator')) {
+    return interaction.reply({
+      content: 'You need the **Administrator** permission to use this command.',
+      ephemeral: true
+    });
+  }
+
+  await interaction.deferReply();
+
+  const everyone = interaction.guild.roles.everyone;
+  const channels = interaction.guild.channels.cache.filter(c => c.type === 0);
+  const failed = [];
+
+  for (const [, channel] of channels) {
+    try {
+      await channel.permissionOverwrites.edit(everyone, { SendMessages: null });
+    } catch {
+      failed.push(channel.name);
+    }
+  }
+
+  return interaction.editReply({
+    embeds: [{
+      color: 0x2b2d31,
+      title: 'Server Unlockdown',
+      description: 'All channels have been unlocked. Members can now send messages.',
+      fields: [
+        { name: 'Moderator', value: `${interaction.user}` },
+        { name: 'Channels Unlocked', value: `${channels.size - failed.length}` },
+        failed.length ? { name: 'Failed', value: failed.join(', ') } : { name: 'Failed', value: 'None' }
+      ],
+      timestamp: new Date(),
+      footer: { text: 'Moderation System' }
+    }]
+  });
+}
 
   } catch (err) {
     console.error(err);
